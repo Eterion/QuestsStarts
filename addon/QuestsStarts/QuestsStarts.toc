@@ -1,0 +1,22 @@
+## Interface: 16001
+## Title: QuestsStarts
+## Notes: Quest pickup locations on Blizzard's world map.
+## Version: 0.13.24
+## Category: Quests
+## IconTexture: Interface\Icons\INV_Misc_Map_01
+## SavedVariables: QuestsStartsDB
+## Dependencies: Blizzard_WorldMap
+Locale.lua
+Data\Tirisfal.lua
+Events.lua
+Eligibility.lua
+Requirements.lua
+DungeonPlanner.lua
+Clusters.lua
+Map.lua
+Entrances.lua
+Input.lua
+Dock.lua
+DungeonUI.lua
+Pins.xml
+Core.lua

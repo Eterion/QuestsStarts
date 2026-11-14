@@ -1,0 +1,19 @@
+# Generated builds and upstream working copies
+/dist/
+/work/
+/vendor/
+
+# Local editor and operating-system files
+/.vscode/
+/.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local game state and credentials
+/WTF/
+/Cache/
+/SavedVariables/
+.env
+.env.*
+!.env.example
