@@ -12,15 +12,34 @@ if (Test-Path -LiteralPath $target) {
     if (-not (Test-Path -LiteralPath (Join-Path $target 'QuestsStarts.build.json'))) { throw 'Existing addon folder is not owned by this deploy script.' }
 }
 $files = @(Get-ChildItem -LiteralPath $source -Recurse -File)
-if ($PSCmdlet.ShouldProcess($target, 'Deploy QuestsStarts prototype')) {
-    foreach ($file in $files) {
+$sourceToc = Get-Content -LiteralPath (Join-Path $source 'QuestsStarts.toc') -Raw
+$version = [regex]::Match($sourceToc, '(?m)^## Version:[ \t]*(\d+\.\d+\.\d+)[ \t]*\r?$').Groups[1].Value
+if (-not $version) { throw 'Expected a stable Version in QuestsStarts.toc.' }
+$coreName = 'Core.lua'
+$installedCore = Join-Path $target $coreName
+$sourceCore = Get-Content -LiteralPath (Join-Path $source $coreName) -Raw
+$buildMarker = '(?m)^local developmentBuild = nil(?= --)'
+if ($sourceCore -notmatch $buildMarker) { throw 'Expected a development build marker in Core.lua.' }
+$buildNumber = 1
+if (Test-Path -LiteralPath $installedCore -PathType Leaf) {
+    $previousCore = Get-Content -LiteralPath $installedCore -Raw
+    $pattern = '(?m)^local developmentBuild = "' + [regex]::Escape($version) + '-dev\.(\d+)"'
+    $previousBuild = [regex]::Match($previousCore, $pattern)
+    if ($previousBuild.Success) { $buildNumber += [int]$previousBuild.Groups[1].Value }
+}
+$build = "$version-dev.$buildNumber"
+if ($PSCmdlet.ShouldProcess($target, "Deploy QuestsStarts $build")) {
+    $upstream = (Get-Content -LiteralPath (Join-Path $PSScriptRoot 'upstream-revision.txt') -Raw).Trim()
+    foreach ($file in $files | Where-Object FullName -ne (Join-Path $source $coreName)) {
         $relative = [System.IO.Path]::GetRelativePath($source, $file.FullName)
         $destination = Join-Path $target $relative
         New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
         Copy-Item -LiteralPath $file.FullName -Destination $destination -Force
         if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath $destination).Hash) { throw "Deploy verification failed: $relative" }
     }
-    $version = ((Get-Content -LiteralPath (Join-Path $source 'QuestsStarts.toc') | Where-Object { $_ -match '^## Version:' }) -replace '^## Version:\s*','').Trim()
-    @{addon='QuestsStarts';version=$version;upstream=(Get-Content (Join-Path $PSScriptRoot 'upstream-revision.txt') -Raw).Trim();fileCount=$files.Count} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $target 'QuestsStarts.build.json') -Encoding utf8
-    Write-Output "Deployed and hash-verified $($files.Count) files to $target. Ready for /reload."
+    @{addon='QuestsStarts';version=$version;developmentBuild=$build;upstream=$upstream;fileCount=$files.Count} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $target 'QuestsStarts.build.json') -Encoding utf8
+    $localCore = $sourceCore -replace $buildMarker, ('local developmentBuild = "' + $build + '"')
+    Set-Content -LiteralPath $installedCore -Value $localCore -Encoding utf8NoBOM -NoNewline
+    if ((Get-Content -LiteralPath $installedCore -Raw) -cne $localCore) { throw "Deploy verification failed: $coreName" }
+    Write-Output "Deployed and verified QuestsStarts $build ($($files.Count) files) to $target. After /reload, check /qs."
 }
