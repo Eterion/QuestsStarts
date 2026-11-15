@@ -1,4 +1,5 @@
 local addonName, ns = ...
+local developmentBuild = nil -- Stamped into the installed copy by tools/deploy.ps1.
 local queued, initialized = false, false
 local events = CreateFrame('Frame')
 
@@ -58,6 +59,7 @@ function ns.Refresh()
     ns.Filters = readFilters()
     ns.SyncDock()
     if ns.UpdateDungeonFrame then ns.UpdateDungeonFrame() end
+    if ns.UpdateZoneFrame then ns.UpdateZoneFrame() end
     if not ns.Data then ns.lastReason='Pickup data did not load.' return end
     if UnitFactionGroup('player') ~= ns.Data.faction then ns.lastReason='This prototype covers Horde characters.' return end
     if not WorldMapFrame:IsShown() then ns.lastReason='Open a covered zone map, then run /qs again.' return end
@@ -148,7 +150,9 @@ SlashCmdList.QUESTSSTARTS = function(message)
         ns.OpenDungeons()
     else
         refreshSafely()
-        print('QuestsStarts 0.13.24: '..ns.L.coverage)
+        local metadata=C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+        local version=developmentBuild or (metadata and metadata(addonName,'Version'))
+        print('QuestsStarts '..(version or '')..': '..ns.L.coverage)
         print('Dungeon entrances on this map: '..(ns.lastEntranceCount or 0))
         print('Entrance button activations: '..(ns.entranceClickCount or 0))
         if ns.lastEntranceFocus then print('Entrance input focus: '..ns.lastEntranceFocus) end

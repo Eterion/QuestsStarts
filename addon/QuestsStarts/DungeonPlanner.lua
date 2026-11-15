@@ -120,20 +120,34 @@ function ns.OrganizeDungeonPlan(data,plan)
     return sections
 end
 
-function ns.ListDungeons(data,player)
-    local list={}
-    for id,dungeon in pairs(data.dungeons or {}) do
-        local plan=ns.BuildDungeonPlan(data,id,player)
-        local minimum,available=math.huge,0
-        for _,row in ipairs(plan.rows) do
-            local q=data.quests[row.id]
-            minimum=math.min(minimum,q and q.requiredLevel or math.huge)
-            if row.status=='available' then available=available+1 end
+local function hasEntranceOnMap(dungeon,mapID,continentID)
+    for _,entrance in ipairs(dungeon.entrances or {}) do
+        if entrance.mapID==mapID or (continentID and ns.GetChecklistContinent(entrance.mapID)==continentID) then
+            return true
         end
-        if plan.total>0 then
-            local low,high=ns.DungeonLevelRange(id,data)
-            list[#list+1]={id=id,name=dungeon.name,minLevel=minimum<math.huge and minimum or nil,
-                levelLow=low,levelHigh=high,eligible=player.level>=minimum,available=available,accepted=plan.accepted,completed=plan.completed,total=plan.total}
+    end
+    return false
+end
+
+function ns.ListDungeons(data,player,mapID)
+    local list={}
+    local world=not mapID or ns.IsChecklistWorldMap(mapID)
+    local continentID=not world and ns.GetChecklistContinent(mapID)
+    local continentScope=continentID==mapID and continentID or nil
+    for id,dungeon in pairs(data.dungeons or {}) do
+        if world or hasEntranceOnMap(dungeon,mapID,continentScope) then
+            local plan=ns.BuildDungeonPlan(data,id,player)
+            local minimum,available=math.huge,0
+            for _,row in ipairs(plan.rows) do
+                local q=data.quests[row.id]
+                minimum=math.min(minimum,q and q.requiredLevel or math.huge)
+                if row.status=='available' then available=available+1 end
+            end
+            if plan.total>0 then
+                local low,high=ns.DungeonLevelRange(id,data)
+                list[#list+1]={id=id,name=dungeon.name,minLevel=minimum<math.huge and minimum or nil,
+                    levelLow=low,levelHigh=high,eligible=player.level>=minimum,available=available,accepted=plan.accepted,completed=plan.completed,total=plan.total}
+            end
         end
     end
     table.sort(list,function(a,b)

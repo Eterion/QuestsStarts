@@ -2,11 +2,13 @@ local _, ns = ...
 -- English fallback for the first prototype. Native quest titles replace names when cached.
 ns.L = {
     starts = 'Quest Starts',
-    itemStarts = 'Item Quest Starts',
-    turnedInBooks = 'Show Turned-In Books',
+    zoneQuests = 'Zone Quests',
+    questGivers = 'Quest Givers',
+    itemStarts = 'Quest-Starting Items and Books',
+    turnedInBooks = 'Turned-In Library Books',
     dungeons = 'Dungeon Quests',
     entrances = 'Dungeon Entrances',
-    uncertain = 'Include Unverified Pickups',
+    uncertain = 'Unverified Quest Pickups',
     pickupMenu = 'Choose a Quest Pickup',
     waypoint = 'Click to set a waypoint',
     choosePickup = 'Click to choose a quest pickup',

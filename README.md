@@ -33,6 +33,25 @@ Forever-specific quest coverage, locations, restrictions, and dungeon associatio
 
 Native APIs can supply player quest state and may provide some quest offers. An initial user probe returned no available quest lines for the tested zone; this does not establish global coverage or API failure.
 
+Zone Quests provides Horde checklists for the 50 configured world zones and
+cities. It uses quests categorized to each zone, quests with a known local
+pickup, and known pickups inside dungeons entered from the zone. Quests can
+appear in multiple zones when the source associates them with each. Quest chains
+group local steps and show known outside steps in tooltips. Zoom out on the map
+to see continent or zone cards in the panel. Dungeon Quests follows the map and
+lists instances with entrances in the current zone or continent. The world map
+shows all tracked dungeons. The zone panel shows a source-data message
+when it has no quests for the selected map or character.
+The pinned source has checklist records on 48 maps before character filtering.
+Riverglades has one categorized quest, while Deadwind Pass and Mount Hyjal have
+no checklist records in this source.
+
+Zone headers prefer the client's level range. Fallback ranges use the
+[Kalimdor](https://www.60.tools/map/kalimdor) and
+[Eastern Kingdoms](https://www.60.tools/map/eastern-kingdoms) client-data
+summaries, with introductory zones starting at level 1. Headers use Blizzard
+zone artwork where available and the continent loading screen elsewhere.
+
 ## First milestone
 
 Build and validate quest-start pins in one zone before expanding coverage or adding dungeon preparation. Validate icon placement, native appearance, completion filtering, grouped tooltips, and waypoint behavior in game.
@@ -47,7 +66,7 @@ Build and validate quest-start pins in one zone before expanding coverage or add
 
 ## Status
 
-Version 0.13.24 includes reviewed upstream quest-chain/class fixes and regular Horde pickup markers through the world zones and cities represented in the source, plus preparation for 21 dungeon groups:
+Version 0.14.0 adds Zone Quests checklists and searchable world, zone, and dungeon lists. It also includes Horde pickup markers across the world zones and cities represented in the source and preparation for 21 dungeon groups:
 
 - 2,225 candidate pickup locations (1,464 NPC/object givers and 761 item sources) on 47 populated maps, including later leveling zones such as Desolace, Dustwallow, Stranglethorn, Tanaris, Feralas, the Hinterlands, Plaguelands, Winterspring, and Silithus. The dataset contains 3,682 quest records including transitive dependencies and dungeon preparation. Counts precede eligibility filtering; [coverage by map](docs/coverage.md) is generated during the build.
 - The 50 configured maps comprise the 46 Classic world-zone/city maps and four mapped Forever areas. Zephras Isle and Shen'dralas have recorded pickup locations. Riverglades, Mount Hyjal, and Deadwind Pass currently have no pickup coordinates in the Horde export; `/qs` identifies this separately from unsupported maps and quests hidden by filters. The export configuration does not prove complete live quest or area availability. [The gap audit](docs/coverage-gaps.md) records the evidence. Darkspear Islands is a battleground and is excluded from overworld coverage.

@@ -2,7 +2,7 @@
 
 Generated from QuestieDB `aa1d7e7294596cf50a6fd0946dfae0d969cb9623` with the documented local corrections.
 
-50 configured world-zone/city maps, 47 with candidate pickup locations, 2225 locations total (1464 NPC/object givers and 761 item sources), and 3682 quest records including dependencies.
+50 configured world-zone/city maps, 47 with candidate pickup locations, 2225 locations total (1464 NPC/object givers and 761 item sources), and 4441 quest records including dependencies.
 
 Counts precede player eligibility filters and do not establish live completeness. Alliance-only quests remain excluded for Horde at runtime. Empty maps have no valid pickup coordinates in this export; they must not be mistaken for completed or level-filtered quests. Item sources use one recorded spawn per creature/object per map, not a drop-area center or guaranteed drop. Vendors, unrecorded sources, and phased or invalid coordinates remain outside this coverage.
 

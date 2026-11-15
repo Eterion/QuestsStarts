@@ -6,6 +6,29 @@ loadAddon('Events.lua')
 loadAddon('Eligibility.lua')
 loadAddon('Requirements.lua')
 loadAddon('DungeonPlanner.lua')
+loadAddon('ZonePlanner.lua')
+do
+    local quests={
+        [1]={name='Second',questLevel=1,preQuestSingle={2}},
+        [2]={name='First',questLevel=10,nextQuestInChain=1,preQuestSingle={4}},
+        [3]={name='Other class',requiredClasses=2},
+        [4]={name='Outside the zone'},
+    }
+    local ids={[1]=true,[2]=true,[3]=true}
+    local player={classMask=1,active=function(id)return id==1 end,completed=function(id)return id==2 end}
+    local plan=ns.BuildZoneChecklist(quests,ids,{[1]='Wailing Caverns'},player,true)
+    check(plan.total==2 and plan.accepted==1 and plan.completed==1,'zone progress counts only eligible character quests in scope')
+    check(#plan.chains==1 and plan.chains[1].steps[1].id==2 and plan.chains[1].steps[2].id==1,
+        'zone chains preserve prerequisite order even when level sorting would reverse it')
+    check(plan.chains[1].steps[1].previous[4] and plan.chains[1].steps[2].dungeon=='Wailing Caverns',
+        'zone chain retains a known outside prerequisite and dungeon association')
+    local filtered=ns.BuildZoneChecklist(quests,ids,{},player,false)
+    check(#filtered.chains[1].visible==1 and filtered.chains[1].visible[1].id==1 and filtered.completed==1,
+        'hiding a completed step preserves its chain and completion total')
+    local tooltip=ns.ZoneChainTooltipSteps(filtered.chains[1],quests,player)
+    check(#tooltip==3 and tooltip[1].id==4 and tooltip[2].id==2 and tooltip[2].complete
+        and tooltip[3].id==1 and tooltip[3].active,'chain tooltip retains outside and hidden steps in order with quest status')
+end
 loadAddon('Clusters.lua')
 local done, active = {}, {}
 local state = {level=10,raceMask=16,classMask=16,completed=function(id)return done[id] or false end,active=function(id)return active[id] or false end}
@@ -123,9 +146,10 @@ CreateFromMixins=function(...)
 end
 MapCanvasPinMixin={OnReleased=function()end}
 MapCanvasDataProviderMixin={OnAdded=function(self,map)self.map=map end,GetMap=function(self)return self.map end}
+CreateColor=function(r,g,b,a)return {r=r,g=g,b=b,a=a} end
 local menuCallback, handler, timers, acquired, menuCount = nil,nil,{},0,0
 Menu={ModifyMenu=function(tag,callback)check(tag=='MENU_WORLD_MAP_TRACKING','native map menu tag')menuCallback=callback end}
-loadAddon('Locale.lua') loadAddon('Map.lua') loadAddon('Entrances.lua') loadAddon('Input.lua') loadAddon('DungeonUI.lua')
+loadAddon('Locale.lua') loadAddon('Map.lua') loadAddon('Entrances.lua') loadAddon('Input.lua') loadAddon('DungeonUI.lua') loadAddon('ZoneUI.lua')
 -- Shared-dock lifecycle is exercised with stateful native-template doubles below.
 ns.InstallDungeonButton=function()end ns.SyncDock=function()end ns.QueueDock=function()end
 ns.CloseDungeons=function()ns.DungeonsOpen=false if ns.DungeonFrame then ns.DungeonFrame:Hide()end end
@@ -137,7 +161,7 @@ WorldMapFrame={
     RemoveAllPinsByTemplate=function()acquired=0 end,
     IsShown=function()return true end,GetMapID=function()return 1420 end,
     EnumeratePinsByTemplate=function()return function()end end,
-    AcquirePin=function(_,template,cluster,map)if template==ns.PinTemplate then check(map==1420 and #cluster.groups>0,'cluster pin payload') acquired=acquired+1 end end,
+    AcquirePin=function(self,template,cluster,map)if template==ns.PinTemplate then check(map==self:GetMapID() and #cluster.groups>0,'cluster pin payload') acquired=acquired+1 end end,
     GetCanvas=function()return {GetWidth=function()return 1000 end,GetHeight=function()return 700 end}end,
     GetCanvasScale=function()return 1 end,GetGlobalPinScale=function()return 1 end,
 }
@@ -154,9 +178,17 @@ loadAddon('Core.lua')
 handler(nil,'ADDON_LOADED','QuestsStarts')
 check(type(menuCallback)=='function','menu modification installed')
 local menuButtons=0
-local rootMenu={CreateDivider=function()end,CreateCheckbox=function(_,_,getter,setter)check(type(getter())=='boolean','filter state')menuCount=menuCount+1 end,CreateButton=function()menuButtons=menuButtons+1 end}
+local filterLabels={}
+local rootMenu={CreateDivider=function()end,CreateTitle=function(_,label)check(label=='QuestsStarts','addon filters have a heading')end,
+    CreateCheckbox=function(_,label,getter,setter)
+        check(type(getter())=='boolean','filter state')
+        menuCount=menuCount+1
+        filterLabels[menuCount]=label
+    end,CreateButton=function()menuButtons=menuButtons+1 end}
 menuCallback(nil,rootMenu)
 check(menuCount==5,'native menu includes an independent collected-books filter')
+check(table.concat(filterLabels,'|')=='Quest Givers|Quest-Starting Items and Books|Dungeon Entrances|Turned-In Library Books|Unverified Quest Pickups',
+    'primary map filters come before supplemental filters')
 check(menuButtons==0,'map filter contains no redundant dungeon navigation item')
 local pending=timers timers={} for _,fn in ipairs(pending)do fn()end
 check(acquired>0,'real generated data produces map pins')

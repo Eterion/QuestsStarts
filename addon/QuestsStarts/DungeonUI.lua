@@ -8,6 +8,11 @@ local dungeonArt={
     [16611]=7963782,[16919]=7963781,[16732]=7963777,[16544]=7963775,
 }
 local cardHeight=72
+local detailHeight=88
+local clearShadow=CreateColor(0,0,0,0)
+local titleShadow=CreateColor(0,0,0,.94)
+local checkIcon='Interface\\RaidFrame\\ReadyCheck-Ready'
+local questLogIcon='Interface\\GossipFrame\\ActiveQuestIcon'
 local shortStatus={completed='Done',['in log']='In log',available='Ready',blocked='Locked',unverified='Check'}
 local statuses={
     available='Available', completed='Completed', ['in log']='In your quest log',
@@ -33,26 +38,48 @@ function ns.DungeonStatusText(step)
     return reason or statuses[step.status] or ns.L.unknown
 end
 
-function ns.NavigateDungeonPickup(id,location)
-    if not location.mapID or not location.x or not location.y then return false end
+local function isMapPickup(location)
+    return location.mapID and location.x and location.y
+end
+
+local function canNavigateStatus(status)
+    return status=='available' or status=='unverified' or status=='completed'
+end
+
+function ns.HasChecklistPickup(status,locations)
+    if not canNavigateStatus(status) then return false end
+    for _,location in ipairs(locations) do
+        if isMapPickup(location) then return true end
+    end
+    return false
+end
+
+local function navigatePickup(location,closePanel)
     if not WorldMapFrame:IsShown() then ToggleWorldMap() end
     WorldMapFrame:SetMapID(location.mapID)
     ns.SetPickupWaypoint(location.mapID,location)
-    ns.CloseDungeons()
-    return true
+    closePanel()
 end
 
-local function choosePickup(owner,id)
-    local locations=ns.Data.pickups[id] or {}
+function ns.HandleChecklistClick(owner,id,status,locations,closePanel)
+    if status=='in log' then
+        if QuestMapFrame_OpenToQuestDetails then QuestMapFrame_OpenToQuestDetails(id) end
+        return
+    end
+    if not canNavigateStatus(status) then return end
     local navigable={}
-    for _,location in ipairs(locations) do if location.mapID then navigable[#navigable+1]=location end end
-    if #navigable==1 then ns.NavigateDungeonPickup(id,navigable[1]) return end
+    for _,location in ipairs(locations) do
+        if isMapPickup(location) then
+            navigable[#navigable+1]=location
+        end
+    end
+    if #navigable==1 then navigatePickup(navigable[1],closePanel) return end
     if #navigable==0 then return end
     MenuUtil.CreateContextMenu(owner,function(_,root)
         root:CreateTitle(ns.L.pickupMenu)
         for _,location in ipairs(navigable) do
             local target=location
-            root:CreateButton(ns.PickupLabel(target,ns.Data),function()ns.NavigateDungeonPickup(id,target)end)
+            root:CreateButton(ns.PickupLabel(target,ns.Data),function()navigatePickup(target,closePanel)end)
         end
     end)
 end
@@ -67,6 +94,7 @@ local function showEntranceMap(owner,dungeon)
         end
     end
     local function navigate(mapID)
+        ns.DungeonFrame.mapID=mapID
         WorldMapFrame:SetMapID(mapID)
     end
     if #maps==1 then navigate(maps[1]) end
@@ -79,10 +107,6 @@ local function showEntranceMap(owner,dungeon)
                 function()navigate(target)end)
         end
     end)
-end
-
-local function canNavigateStep(step)
-    return step.status=='available' or step.status=='unverified' or step.status=='completed'
 end
 
 local function stepTooltip(owner,step)
@@ -98,13 +122,95 @@ local function stepTooltip(owner,step)
     if #locations==0 then GameTooltip:AddLine('Pickup location is not known.',.65,.65,.65,true) end
     if step.branch=='one of' then GameTooltip:AddLine('Complete one of these alternatives.',1,.82,0,true) end
     if step.branch=='all' then GameTooltip:AddLine('All required quests must be completed.',1,.82,0,true) end
-    local navigable=false
-    for _,location in ipairs(locations) do if location.mapID then navigable=true end end
-    if navigable and canNavigateStep(step) then
+    if ns.HasChecklistPickup(step.status,locations) then
         GameTooltip:AddLine(' ')
         GameTooltip:AddLine('Click to show the pickup on the map.',.65,.65,.65,true)
     end
     GameTooltip:Show()
+end
+
+function ns.ChecklistBannerTitle(name,low,high)
+    if not low or not high then return name end
+    return string.format('%s  |cffe7dcc2%d-%d|r',name,low,high)
+end
+
+function ns.SetChecklistBannerArt(art,fileID,width,height)
+    local loaded=art:SetTexture(fileID)
+    if not loaded then
+        art:SetColorTexture(.23,.17,.10,1)
+    end
+    local ratio=(16/9)*height/math.max(1,width)
+    local x,y=math.min(1,1/ratio),math.min(1,ratio)
+    art:SetTexCoord((1-x)/2,(1+x)/2,(1-y)/2,(1+y)/2)
+    return loaded
+end
+
+local function createTitleFade(parent,height)
+    local fade=parent:CreateTexture(nil,'BORDER')
+    fade:SetPoint('TOPLEFT',parent,'TOPLEFT')
+    fade:SetPoint('TOPRIGHT',parent,'TOPRIGHT')
+    fade:SetHeight(height)
+    fade:SetColorTexture(1,1,1,1)
+    fade:SetGradient('VERTICAL',clearShadow,titleShadow)
+    return fade
+end
+
+function ns.CreateChecklistBanner(parent,height)
+    local banner=CreateFrame('Frame',nil,parent)
+    banner:SetPoint('TOPLEFT',parent,'TOPLEFT',2,-28)
+    banner:SetPoint('TOPRIGHT',parent,'TOPRIGHT',-2,-28)
+    banner:SetHeight(height)
+    banner.Art=banner:CreateTexture(nil,'BACKGROUND')
+    banner.Art:SetAllPoints(banner)
+    createTitleFade(banner,54)
+    banner.Title=banner:CreateFontString(nil,'OVERLAY','GameFontNormalLarge')
+    banner.Title:SetPoint('TOPLEFT',banner,'TOPLEFT',14,-10)
+    banner.Title:SetPoint('RIGHT',banner,'RIGHT',-14,0)
+    banner.Title:SetJustifyH('LEFT')
+    banner.Title:SetWordWrap(true)
+    banner.Title:SetMaxLines(2)
+    banner.Title:SetShadowColor(0,0,0,1)
+    banner.Title:SetShadowOffset(1.5,-1.5)
+    return banner
+end
+
+function ns.CreateQuestBadge(parent,texture)
+    local badge=CreateFrame('Frame',nil,parent,'BackdropTemplate')
+    badge:SetHeight(20)
+    badge:SetBackdrop({
+        bgFile='Interface\\Buttons\\WHITE8X8',
+        edgeFile='Interface\\Tooltips\\UI-Tooltip-Border',
+        edgeSize=8,
+        insets={left=2,right=2,top=2,bottom=2},
+    })
+    badge.Icon=badge:CreateTexture(nil,'ARTWORK')
+    badge.Icon:SetTexture(texture)
+    badge.Icon:SetSize(14,14)
+    badge.Icon:SetPoint('LEFT',badge,'LEFT',5,0)
+    badge.Label=badge:CreateFontString(nil,'OVERLAY','GameFontHighlightSmall')
+    badge.Label:SetShadowColor(0,0,0,1)
+    badge.Label:SetShadowOffset(1,-1)
+    return badge
+end
+
+local function setBadge(badge,text,showIcon,r,g,b)
+    badge.Label:SetText(text)
+    badge.Label:SetTextColor(r,g,b)
+    badge.Label:SetPoint('LEFT',badge,'LEFT',showIcon and 22 or 7,0)
+    badge.Icon:SetShown(showIcon)
+    badge:SetWidth(badge.Label:GetStringWidth()+(showIcon and 29 or 14))
+    badge:SetBackdropColor(r*.17,g*.17,b*.17,.95)
+    badge:SetBackdropBorderColor(r*.65,g*.65,b*.65,.9)
+end
+
+function ns.UpdateQuestCountBadges(completedBadge,logBadge,completed,total,accepted)
+    local text=string.format('%d/%d Completed',completed,total)
+    if total>0 and completed==total then
+        setBadge(completedBadge,text,true,.63,1,.50)
+    else
+        setBadge(completedBadge,text,false,1,.90,.68)
+    end
+    setBadge(logBadge,string.format('%d In Quest Log',accepted),true,1,.90,.68)
 end
 
 local function makeRow(frame,index)
@@ -115,34 +221,56 @@ local function makeRow(frame,index)
     title:ClearAllPoints() title:SetPoint('TOPLEFT',row,'TOPLEFT',23,-4)
     title:SetWidth(266) title:SetJustifyH('LEFT') title:SetWordWrap(true)
     title:SetMaxLines(2)
+    title:SetShadowColor(0,0,0,1)
+    title:SetShadowOffset(1.5,-1.5)
     row.Icon:ClearAllPoints() row.Icon:SetPoint('TOPLEFT',row,'TOPLEFT',3,-4)
     row.Art=row:CreateTexture(nil,'BACKGROUND')
     row.Art:SetAllPoints(row)
-    row.Shade=row:CreateTexture(nil,'BORDER')
-    row.Shade:SetAllPoints(row)
-    row.Shade:SetColorTexture(0,0,0,.42)
-    row.Caption=row:CreateTexture(nil,'ARTWORK')
-    row.Caption:SetPoint('BOTTOMLEFT',row,'BOTTOMLEFT')
-    row.Caption:SetPoint('BOTTOMRIGHT',row,'BOTTOMRIGHT')
-    row.Caption:SetHeight(36)
-    row.Caption:SetColorTexture(.04,.03,.02,.84)
-    row.Complete=row:CreateTexture(nil,'OVERLAY')
-    row.Complete:SetTexture('Interface\\RaidFrame\\ReadyCheck-Ready')
-    row.Complete:SetSize(16,16)
-    row.Complete:SetPoint('BOTTOMRIGHT',row,'BOTTOMRIGHT',-8,4)
-    row.Complete:Hide()
+    row.TitleFade=createTitleFade(row,48)
+    row.CardBorder=CreateFrame('Frame',nil,row,'BackdropTemplate')
+    row.CardBorder:SetAllPoints()
+    row.CardBorder:SetBackdrop({edgeFile='Interface\\Tooltips\\UI-Tooltip-Border',edgeSize=12})
+    row.CardBorder:SetBackdropBorderColor(.76,.62,.40)
+    row.Progress=ns.CreateQuestBadge(row,checkIcon)
+    row.Progress:SetPoint('BOTTOMRIGHT',row,'BOTTOMRIGHT',-8,6)
     row.Status=row:CreateFontString(nil,'OVERLAY','GameFontHighlightSmall')
-    row.Progress=row:CreateFontString(nil,'OVERLAY','GameFontHighlightSmall')
-    row.Progress:SetWidth(55)
-    row.Progress:SetJustifyH('RIGHT')
     row.Status:SetPoint('TOPLEFT',row,'TOPLEFT',23,-23)
     row.Status:SetWidth(266) row.Status:SetJustifyH('LEFT') row.Status:SetWordWrap(false)
-    row:SetScript('OnLeave',function(self)if GameTooltip:IsOwned(self) then GameTooltip:Hide() end end)
+    row:SetScript('OnLeave',function(self)
+        self.CardBorder:SetBackdropBorderColor(.76,.62,.40)
+        if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
+    end)
     return row
 end
 
 local sectionNames={['in log']='In Your Quest Log',available='Pick Up Before Entering',inside='Pick Up Inside the Instance',
     chains='Prerequisite Chains',blocked='Not Yet Available',completed='Completed'}
+
+function ns.CreateChecklistSearch(parent,onChange)
+    local search=CreateFrame('EditBox',nil,parent,'SearchBoxTemplate')
+    search:SetAutoFocus(false)
+    search:SetHeight(22)
+    search:HookScript('OnTextChanged',function(self)
+        if not self.resetting then onChange() end
+    end)
+    search:HookScript('OnHide',function(self)self:ClearFocus()end)
+    return search
+end
+
+function ns.ResetChecklistSearch(search)
+    search:ClearFocus()
+    search.resetting=true
+    search:SetText('')
+    search.resetting=false
+end
+
+function ns.ChecklistSearchQuery(search)
+    return (search:GetText() or ''):match('^%s*(.-)%s*$'):lower()
+end
+
+function ns.ChecklistSearchMatches(name,query)
+    return query=='' or name:lower():find(query,1,true)~=nil
+end
 
 function ns.PositionDungeonFrame()
     local frame=ns.DungeonFrame
@@ -150,27 +278,7 @@ function ns.PositionDungeonFrame()
     ns.SyncDock()
     local width=frame:GetWidth()
     frame.Content:SetWidth(math.max(1,width-46))
-    frame.Summary:SetWidth(math.max(1,width-40))
-    frame.Navigation:SetWidth(math.max(1,width-14))
     return true
-end
-
-function ns.UpdateDungeonNavigation(frame)
-    if frame.navDungeonID==frame.dungeonID then return end
-    NavBar_Reset(frame.Navigation)
-    if frame.dungeonID then
-        local dungeon=ns.Data.dungeons[frame.dungeonID]
-        NavBar_AddButton(frame.Navigation,{name=dungeon.name,id=frame.dungeonID,
-            OnClick=function()ns.OpenDungeons(frame.dungeonID)end,
-            listFunc=function()
-                local result={}
-                for _,entry in ipairs(ns.ListDungeons(ns.Data,ns.GetPlayerState())) do
-                    result[#result+1]={text=entry.name,id=entry.id,func=function(_,id)ns.OpenDungeons(id)end}
-                end
-                return result
-            end})
-    end
-    frame.navDungeonID=frame.dungeonID
 end
 
 function ns.UpdateDungeonFrame()
@@ -178,27 +286,32 @@ function ns.UpdateDungeonFrame()
     if not frame or not frame:IsShown() then return end
     local data=ns.Data
     if not ns.PositionDungeonFrame() then return end
+    local mapID=WorldMapFrame:GetMapID()
+    if frame.mapID~=mapID then
+        frame.mapID,frame.dungeonID=mapID,nil
+        ns.ResetChecklistSearch(frame.Search)
+        frame.Scroll:SetVerticalScroll(0)
+    end
     local dungeon=frame.dungeonID and data.dungeons[frame.dungeonID]
     local player=ns.GetPlayerState()
-    ns.UpdateDungeonNavigation(frame)
     local visible,headingCount,y=0,0,0
     local function heading(text,count)
         if y>0 then y=y+6 end
         headingCount=headingCount+1
         local bar=frame.Headings[headingCount]
         if not bar then
-            bar=CreateFrame('Frame',nil,frame.Content)
-            local background=bar:CreateTexture(nil,'BACKGROUND')
-            background:SetAllPoints(bar)
-            background:SetColorTexture(.25,.18,.10,.9)
-            bar.Label=bar:CreateFontString(nil,'OVERLAY','GameFontNormal')
-            bar.Label:SetPoint('LEFT',bar,'LEFT',8,0)
+            bar=CreateFrame('Button',nil,frame.Content,'ListHeaderVisualTemplate')
+            bar:EnableMouse(false)
+            bar.CollapseButton:Hide()
+            bar.ButtonText:ClearAllPoints()
+            bar.ButtonText:SetPoint('LEFT',bar,'LEFT',9,0)
+            bar.ButtonText:SetPoint('RIGHT',bar,'RIGHT',-9,0)
             frame.Headings[headingCount]=bar
         end
         bar:ClearAllPoints()
         bar:SetPoint('TOPLEFT',frame.Content,'TOPLEFT',0,-y)
         bar:SetSize(frame.Content:GetWidth(),25)
-        bar.Label:SetText(text..' ('..count..')')
+        bar:SetText(text..' ('..count..')')
         bar:Show()
         y=y+29
     end
@@ -213,11 +326,11 @@ function ns.UpdateDungeonFrame()
         row:SetHeight(card and cardHeight or 23)
         row.step=step row.kind=kind row.isHeader=kind=='chain'
         row.Art:SetShown(card)
-        row.Shade:SetShown(card)
-        row.Caption:SetShown(card)
-        local complete=card and step.total>0 and step.completed==step.total
-        row.Complete:SetShown(complete)
+        row.TitleFade:SetShown(card)
+        row.CardBorder:SetShown(card)
+        row.CardBorder:SetBackdropBorderColor(.76,.62,.40)
         row.Progress:SetShown(card)
+        row.Status:SetShown(not card)
         row.Icon:SetShown(not card and not row.isHeader)
         local title=row:GetFontString()
         title:ClearAllPoints()
@@ -226,29 +339,25 @@ function ns.UpdateDungeonFrame()
         row.Status:ClearAllPoints()
         row.Status:SetWordWrap(false)
         if card then
-            local loaded=row.Art:SetTexture(dungeonArt[step.id])
-            if not loaded then row.Art:SetColorTexture(.23,.17,.10,1) end
-            local ratio=(16/9)*cardHeight/math.max(1,width)
-            local cropX,cropY=math.min(1,1/ratio),math.min(1,ratio)
-            row.Art:SetTexCoord((1-cropX)/2,(1+cropX)/2,(1-cropY)/2,(1+cropY)/2)
-            title:SetPoint('BOTTOMLEFT',row,'BOTTOMLEFT',12,21)
+            ns.SetChecklistBannerArt(row.Art,dungeonArt[step.id],width,cardHeight)
+            title:SetPoint('TOPLEFT',row,'TOPLEFT',12,-9)
             title:SetWidth(math.max(1,width-24))
+            title:SetMaxLines(2)
+            title:SetWordWrap(true)
             title:SetTextColor(1,.89,.65)
-            row:SetText(step.name)
-            row.Status:SetPoint('BOTTOMLEFT',row,'BOTTOMLEFT',12,5)
-            row.Status:SetWidth(math.max(1,width-90))
-            row.Status:SetJustifyH('LEFT')
-            local level=step.levelLow and string.format('Levels %d–%d',step.levelLow,step.levelHigh) or ''
-            row.Status:SetText(level)
-            row.Progress:ClearAllPoints()
-            row.Progress:SetPoint('BOTTOMRIGHT',row,'BOTTOMRIGHT',complete and -27 or -10,5)
-            row.Progress:SetText(string.format('%d/%d',step.completed,step.total))
+            row:SetText(ns.ChecklistBannerTitle(step.name,step.levelLow,step.levelHigh))
+            local progress=string.format('%d/%d',step.completed,step.total)
+            if step.total>0 and step.completed==step.total then
+                setBadge(row.Progress,'Completed',true,.63,1,.50)
+            else
+                setBadge(row.Progress,progress,false,1,.90,.68)
+            end
             row:SetScript('OnClick',function()ns.OpenDungeons(step.id)end)
             row:SetScript('OnEnter',function(self)
+                self.CardBorder:SetBackdropBorderColor(1,.82,.45)
                 GameTooltip:SetOwner(self,'ANCHOR_RIGHT')
-                GameTooltip:SetText(step.name)
-                GameTooltip:AddLine(row.Status:GetText(),1,1,1)
-                GameTooltip:AddLine(row.Progress:GetText()..' completed',1,1,1)
+                GameTooltip:SetText(ns.ChecklistBannerTitle(step.name,step.levelLow,step.levelHigh))
+                GameTooltip:AddLine(progress..' completed',1,1,1)
                 GameTooltip:Show()
             end)
         else
@@ -271,15 +380,14 @@ function ns.UpdateDungeonFrame()
             row.Icon:SetPoint('LEFT',row,'LEFT',3+indent,0)
             row.Icon:SetSize(15,15)
             row.Icon:SetTexCoord(0,1,0,1)
-            if step.status=='completed' then row.Icon:SetTexture('Interface\\RaidFrame\\ReadyCheck-Ready')
-            elseif step.status=='in log' then row.Icon:SetTexture('Interface\\GossipFrame\\ActiveQuestIcon')
+            if step.status=='completed' then row.Icon:SetTexture(checkIcon)
+            elseif step.status=='in log' then row.Icon:SetTexture(questLogIcon)
             else row.Icon:SetAtlas('QuestNormal') end
             row.Icon:SetAlpha(step.status=='blocked' and .4 or 1)
             row:SetScript('OnClick',nil)
             if not row.isHeader then
                 row:SetScript('OnClick',function(self)
-                    if canNavigateStep(step) then choosePickup(self,step.id)
-                    elseif step.status=='in log' and QuestMapFrame_OpenToQuestDetails then QuestMapFrame_OpenToQuestDetails(step.id) end
+                    ns.HandleChecklistClick(self,step.id,step.status,ns.Data.pickups[step.id] or {},ns.CloseDungeons)
                 end)
             end
             if row.isHeader then
@@ -293,30 +401,33 @@ function ns.UpdateDungeonFrame()
     end
     frame.Scroll:ClearAllPoints()
     local hasEntrance=dungeon and dungeon.entrances and #dungeon.entrances>0
+    frame.Search:SetShown(not dungeon)
+    frame.BackButton:SetShown(dungeon~=nil)
     frame.EntranceButton:SetShown(not not hasEntrance)
     frame.EntranceButton:SetScript('OnClick',hasEntrance and function(owner)showEntranceMap(owner,dungeon)end or nil)
-    frame.Scroll:SetPoint('TOPLEFT',frame,'TOPLEFT',16,dungeon and (hasEntrance and -175 or -147) or -66)
-    frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
-    frame.DetailArt:SetShown(dungeon~=nil)
-    frame.DetailShade:SetShown(dungeon~=nil)
-    if not dungeon then
-        frame.DungeonName:Hide()
-        frame.Summary:Hide()
-        for _,entry in ipairs(ns.ListDungeons(data,player)) do acquire(entry,'instance') end
+    if dungeon then
+        frame.Scroll:SetPoint('TOPLEFT',frame.BackButton,'BOTTOMLEFT',0,-8)
     else
-        frame.DungeonName:Show()
-        frame.Summary:Show()
+        frame.Scroll:SetPoint('TOPLEFT',frame.Search,'BOTTOMLEFT',-8,-6)
+    end
+    frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
+    frame.DetailBanner:SetShown(dungeon~=nil)
+    frame.Empty:Hide()
+    if not dungeon then
+        local entries=ns.ListDungeons(data,player,mapID)
+        local query=ns.ChecklistSearchQuery(frame.Search)
+        for _,entry in ipairs(entries) do
+            if ns.ChecklistSearchMatches(entry.name,query) then acquire(entry,'instance') end
+        end
+        frame.Empty:SetText(#entries==0 and 'No dungeons with quest data on this map.' or 'No matching dungeons.')
+        frame.Empty:SetShown(visible==0)
+    else
         local plan=ns.BuildDungeonPlan(data,frame.dungeonID,player)
         local sections=ns.OrganizeDungeonPlan(data,plan)
         local low,high=ns.DungeonLevelRange(frame.dungeonID,data)
-        if not frame.DetailArt:SetTexture(dungeonArt[frame.dungeonID]) then
-            frame.DetailArt:SetColorTexture(.23,.17,.10,1)
-        end
-        local crop=math.min(1,(16/9)*73/frame.Content:GetWidth())
-        frame.DetailArt:SetTexCoord(0,1,(1-crop)/2,(1+crop)/2)
-        frame.DungeonName:SetText(dungeon.name)
-        local levels=low and string.format('Levels %d–%d   ',low,high) or ''
-        frame.Summary:SetText(levels..string.format('%d/%d completed   %d in log',plan.completed,plan.total,plan.accepted))
+        ns.SetChecklistBannerArt(frame.DetailBanner.Art,dungeonArt[frame.dungeonID],frame:GetWidth()-4,detailHeight)
+        frame.DetailBanner.Title:SetText(ns.ChecklistBannerTitle(dungeon.name,low,high))
+        ns.UpdateQuestCountBadges(frame.CompletedCount,frame.InLogCount,plan.completed,plan.total,plan.accepted)
         for _,key in ipairs({'in log','available','inside','chains','blocked','completed'}) do
             local entries=sections[key]
             if #entries>0 then
@@ -355,31 +466,31 @@ function ns.OpenDungeons(dungeonID)
         frame.Rows={} frame.Headings={}
         frame.CloseButton=CreateFrame('Button',nil,frame,'UIPanelCloseButtonDefaultAnchors')
         frame.CloseButton:SetScript('OnClick',ns.CloseDungeons)
-        frame.Navigation=CreateFrame('Frame','QuestsStartsDungeonNav',frame,'NavBarTemplate')
-        frame.Navigation:SetPoint('TOPLEFT',frame,'TOPLEFT',7,-30)
-        NavBar_Initialize(frame.Navigation,'NavButtonTemplate',{name=WORLD or 'World',OnClick=function()ns.OpenDungeons()end},frame.Navigation.home,frame.Navigation.overflow)
-        frame.navDungeonID=false
-        frame.DetailArt=frame:CreateTexture(nil,'ARTWORK')
-        frame.DetailArt:SetPoint('TOPLEFT',frame,'TOPLEFT',16,-66)
-        frame.DetailArt:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-28,-66)
-        frame.DetailArt:SetHeight(73)
-        frame.DetailShade=frame:CreateTexture(nil,'ARTWORK',nil,1)
-        frame.DetailShade:SetAllPoints(frame.DetailArt)
-        frame.DetailShade:SetColorTexture(.03,.02,.01,.68)
-        frame.DungeonName=frame:CreateFontString(nil,'OVERLAY','GameFontNormalLarge')
-        frame.DungeonName:SetPoint('BOTTOMLEFT',frame.DetailArt,'BOTTOMLEFT',9,27)
-        frame.DungeonName:SetPoint('RIGHT',frame.DetailArt,'RIGHT',-9,0)
-        frame.DungeonName:SetJustifyH('LEFT')
-        frame.DungeonName:SetWordWrap(true)
-        frame.DungeonName:SetMaxLines(2)
-        frame.Summary=frame:CreateFontString(nil,'OVERLAY','GameFontHighlightSmall')
-        frame.Summary:SetPoint('BOTTOMLEFT',frame.DetailArt,'BOTTOMLEFT',9,7)
-        frame.Summary:SetWidth(300) frame.Summary:SetJustifyH('LEFT')
-        frame.Summary:SetHeight(16) frame.Summary:SetJustifyV('TOP')
+        frame.Search=ns.CreateChecklistSearch(frame,function()
+            frame.Scroll:SetVerticalScroll(0)
+            ns.UpdateDungeonFrame()
+        end)
+        frame.Search:SetPoint('TOPLEFT',frame,'TOPLEFT',24,-33)
+        frame.Search:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-34,-33)
+        local banner=ns.CreateChecklistBanner(frame,detailHeight)
+        frame.DetailBanner=banner
+        frame.CompletedCount=ns.CreateQuestBadge(banner,checkIcon)
+        frame.CompletedCount:SetPoint('BOTTOMLEFT',banner,'BOTTOMLEFT',14,7)
+        frame.InLogCount=ns.CreateQuestBadge(banner,questLogIcon)
+        frame.InLogCount:SetPoint('LEFT',frame.CompletedCount,'RIGHT',6,0)
+        frame.BackButton=CreateFrame('Button',nil,frame,'UIPanelButtonTemplate')
+        frame.BackButton:SetSize(60,22)
+        frame.BackButton:SetPoint('TOPLEFT',banner,'BOTTOMLEFT',14,-6)
+        frame.BackButton:SetText(BACK or 'Back')
+        frame.BackButton:SetScript('OnClick',function()ns.OpenDungeons()end)
         frame.EntranceButton=CreateFrame('Button',nil,frame,'UIPanelButtonTemplate')
         frame.EntranceButton:SetSize(158,22)
-        frame.EntranceButton:SetPoint('TOPLEFT',frame.DetailArt,'BOTTOMLEFT',0,-6)
+        frame.EntranceButton:SetPoint('LEFT',frame.BackButton,'RIGHT',6,0)
         frame.EntranceButton:SetText('Show Entrance on Map')
+        frame.Empty=frame:CreateFontString(nil,'OVERLAY','GameFontHighlight')
+        frame.Empty:SetPoint('TOPLEFT',frame.Search,'BOTTOMLEFT',-7,-8)
+        frame.Empty:SetPoint('RIGHT',frame,'RIGHT',-17,0)
+        frame.Empty:SetJustifyH('LEFT')
         frame.Scroll=CreateFrame('ScrollFrame','QuestsStartsDungeonScroll',frame,'QuestsStartsScrollFrameTemplate')
         frame.Scroll:SetPoint('TOPLEFT',frame,'TOPLEFT',16,-128)
         frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
@@ -388,7 +499,12 @@ function ns.OpenDungeons(dungeonID)
         frame:SetScript('OnShow',ns.UpdateDungeonFrame)
         ns.DungeonFrame=frame
     end
+    if ns.CloseZoneQuests then ns.CloseZoneQuests() end
+    local mapID=WorldMapFrame:GetMapID()
+    if ns.DungeonFrame.mapID~=mapID then ns.ResetChecklistSearch(ns.DungeonFrame.Search) end
+    ns.DungeonFrame.mapID=mapID
     ns.DungeonFrame.dungeonID=dungeonID and ns.Data.dungeons[dungeonID] and dungeonID or nil
+    if ns.DungeonFrame.dungeonID then ns.DungeonFrame.Search:ClearFocus() end
     ns.DungeonsOpen=true
     local story=ns.GetStorySurfaces()
     if story and SpokenPlaces and SpokenPlaces.SetMapPanelCollapsed then SpokenPlaces:SetMapPanelCollapsed(true) end

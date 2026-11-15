@@ -61,6 +61,25 @@ for area in pairs(parents) do
         visited[current]=true current=parents[current]
     end
 end
+local checklistMapByArea={}
+local function checklistMap(area)
+    if not area or area<=0 then return end
+    if checklistMapByArea[area]~=nil then return checklistMapByArea[area] end
+    local original=area
+    local visited={}
+    while area and area>0 and not visited[area] do
+        if insideDungeonByArea[area] then break end
+        local mapID=mapIds[area]
+        if coveredMaps[mapID] then
+            checklistMapByArea[original]=mapID
+            return mapID
+        end
+        visited[area]=true
+        area=parents[area]
+    end
+    checklistMapByArea[original]=false
+    return false
+end
 local dungeonNeeded = {}
 local function include(id)
     if included[id] then return end
@@ -86,6 +105,14 @@ local function include(id)
         if row[field] then include(math.abs(row[field])) end
     end
 end
+local function includeInChecklist(id,mapID)
+    if not coveredMaps[mapID] then return end
+    include(id)
+    local quest=quests[id]
+    if not quest then return end
+    quest.checklistMaps=quest.checklistMaps or {}
+    quest.checklistMaps[mapID]=true
+end
 local function includeDungeon(id)
     if dungeonNeeded[id] then return end
     dungeonNeeded[id]=true
@@ -100,9 +127,11 @@ local function includeDungeon(id)
     end
 end
 for _,id in ipairs(db.Quest.GetAllIds()) do
-    local areaID=(corrections[id] and corrections[id].dungeonID) or insideDungeonByArea[db.Quest.zoneOrSort(id)]
+    local category=db.Quest.zoneOrSort(id)
+    local areaID=(corrections[id] and corrections[id].dungeonID) or insideDungeonByArea[category]
     local dungeon=areaID and dungeons[areaID]
     if dungeon then dungeon.quests[#dungeon.quests+1]=id includeDungeon(id) end
+    includeInChecklist(id,checklistMap(category))
 end
 local itemSources=dofile(toolRoot..'item-sources.lua')
 local pickups={}
@@ -159,6 +188,9 @@ for _, id in ipairs(db.Quest.GetAllIds()) do
             local located=false
             for _,itemID in ipairs(starts[3]) do
                 for _,location in ipairs(itemSources(db,itemID,mapIds,insideDungeonByArea)) do
+                    if not location.insideDungeon then
+                        includeInChecklist(id,location.mapID or location.zoneMapID)
+                    end
                     if not location.insideDungeon and coveredMaps[location.mapID] and location.x and location.y then
                         local key=table.concat({location.mapID,'Item',itemID,location.sourceKind,location.sourceID},':')
                         local starter=starters[key]
@@ -183,6 +215,7 @@ for _, id in ipairs(db.Quest.GetAllIds()) do
                 local friendly = kind == 'Npc' and entity.friendlyToFaction(starterId) or nil
                 if friendly ~= 'A' or (corrections[id] and corrections[id].allowAllianceStarter) then
                     for area, locations in pairs(entity.spawns(starterId) or {}) do
+                        includeInChecklist(id,checklistMap(area))
                         local mapID = mapIds[area]
                         if coveredMaps[mapID] then
                             local duplicates=kind=='Object' and corrections[id] and corrections[id].duplicateObjectSpawns

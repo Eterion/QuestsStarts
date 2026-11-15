@@ -225,24 +225,18 @@ function ns.InstallFilter()
     if not Menu or not Menu.ModifyMenu then return end
     Menu.ModifyMenu('MENU_WORLD_MAP_TRACKING', function(_, root)
         root:CreateDivider()
-        root:CreateCheckbox(ns.L.starts, function() return ns.Settings.enabled end, function()
-            ns.Settings.enabled = not ns.Settings.enabled
-            ns.QueueRefresh()
-        end)
-        root:CreateCheckbox(ns.L.itemStarts, function() return ns.Settings.showItems end, function()
-            ns.Settings.showItems = not ns.Settings.showItems
-            ns.QueueRefresh()
-        end)
-        root:CreateCheckbox(ns.L.turnedInBooks, function() return ns.Settings.showTurnedInBooks end, function()
-            ns.Settings.showTurnedInBooks = not ns.Settings.showTurnedInBooks
-            ns.QueueRefresh()
-        end)
-        root:CreateCheckbox(ns.L.uncertain, function() return ns.Settings.includeUnknown end, function()
-            ns.Settings.includeUnknown = not ns.Settings.includeUnknown
-            ns.QueueRefresh()
-        end)
-        root:CreateCheckbox(ns.L.entrances,function()return ns.Settings.showEntrances end,function()
-            ns.Settings.showEntrances=not ns.Settings.showEntrances ns.QueueRefresh()
-        end)
+        root:CreateTitle('QuestsStarts')
+        local function checkbox(label, key)
+            root:CreateCheckbox(label, function() return ns.Settings[key] end, function()
+                ns.Settings[key] = not ns.Settings[key]
+                ns.QueueRefresh()
+            end)
+        end
+        checkbox(ns.L.questGivers, 'enabled')
+        checkbox(ns.L.itemStarts, 'showItems')
+        checkbox(ns.L.entrances, 'showEntrances')
+        root:CreateDivider()
+        checkbox(ns.L.turnedInBooks, 'showTurnedInBooks')
+        checkbox(ns.L.uncertain, 'includeUnknown')
     end)
 end
