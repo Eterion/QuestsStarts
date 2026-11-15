@@ -96,6 +96,14 @@ The build uses the upstream checkout's checksum-pinned Lua 5.1 interpreter offli
 
 The deploy script writes only `QuestsStarts` beneath the specified AddOns directory, verifies copied hashes, and refuses an existing folder without its ownership marker. It does not remove other addons or edit SavedVariables. Change its destination with `-AddOnsPath` for an isolated test installation.
 
+### GitHub releases
+
+Publish only when the repository owner explicitly requests a release. Commits and pushes are independent of this process.
+
+For a release, select **Actions → Release QuestsStarts → Run workflow** on `master` and enter the manifest version and user-visible release notes. The workflow checks the version, rebuilds the pinned quest data, checks the packaged files against the selected commit, and runs the offline tests. It publishes the ZIP and `release.json` on a stable release tagged `v<version>`. For updates, use a version higher than the previous release.
+
+To verify the package locally, run `./tools/package.ps1` with PowerShell 7. It writes both files to `dist/v<version>/`. The addon's `X-GitHub` metadata gives AddonUpdater the repository URL, and `release.json` tells it which ZIP matches WoW Forever.
+
 In game, use the dungeon side tab or a dungeon entrance marker. `/qs dungeon` remains an alternate entry point; the native map filter menu controls marker visibility. `/qs` reports pickup diagnostics, entrance counts, and entrance activations; `/qs off` and `/qs on` toggle quest-giver markers; use the map filter to toggle item-source markers independently. No quest is accepted, abandoned, or completed by the addon.
 
 ### Current limitations
