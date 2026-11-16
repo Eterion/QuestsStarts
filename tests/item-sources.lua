@@ -58,6 +58,19 @@ return function(ns,check,root)
             check(group.starter.kind=='Item' and choice[2] or group.starter.kind=='Npc' and choice[1],'disabled source types cannot enter mixed clusters')
         end
     end
+    filterData.maps[1][2].quests={2,3,4}
+    filterData.quests[1].specialFlags=1
+    filterData.quests[3]={specialFlags=1}
+    filterData.quests[4]={specialFlags=1,questFlags=4096}
+    state.showQuestGivers,state.showItemStarts,state.showRepeatable=true,true,false
+    local filtered,filterStats=ns.BuildGroups(filterData,1,state,true)
+    check(#filtered==2 and #filtered[1].quests==1 and #filtered[2].quests==2
+        and filtered[2].quests[1].id==2 and filtered[2].quests[2].id==4
+        and filterStats.hidden['repeatable quests hidden']==1,
+        'repeatable filter removes only the repeatable offer from a mixed giver and retains item markers')
+    state.showRepeatable=true
+    filtered=ns.BuildGroups(filterData,1,state,true)
+    check(#filtered[2].quests==3,'enabling repeatables restores the offer on a mixed giver')
     local oldTexture=C_Texture
     C_Texture={GetAtlasInfo=function()return {} end}
     local function texture()

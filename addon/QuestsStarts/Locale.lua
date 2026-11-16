@@ -4,6 +4,7 @@ ns.L = {
     starts = 'Quest Starts',
     zoneQuests = 'Zone Quests',
     questGivers = 'Quest Givers',
+    repeatableQuests = 'Repeatable Quests',
     itemStarts = 'Quest-Starting Items and Books',
     turnedInBooks = 'Turned-In Library Books',
     dungeons = 'Dungeon Quests',

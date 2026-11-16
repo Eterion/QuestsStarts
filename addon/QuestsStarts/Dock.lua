@@ -238,6 +238,7 @@ function ns.SetupDockHooks()
     end
 
     local places=SpokenPlaces
+    ns.SetupSpokenEntranceInput(places)
     if places~=hookedSpoken and type(places.SetMapPanelCollapsed)=='function' then
         hookedSpoken=places
         hooksecurefunc(places,'SetMapPanelCollapsed',function(_,collapsed)

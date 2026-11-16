@@ -1,13 +1,6 @@
 local _, ns = ...
 local template = 'QuestsStartsPickupPinTemplate'
 ns.PinTemplate = template
--- QuestieDB questFlags.DAILY and specialFlags.REPEATABLE.
-local function questKind(id)
-    local quest=ns.Data.quests[id]
-    if quest and ns.HasBit(quest.questFlags or 0,4096) then return 'Daily' end
-    if quest and ns.HasBit(quest.specialFlags or 0,1) then return 'Repeatable' end
-    return 'Normal'
-end
 
 local function setOfferIcon(texture,kind)
     local dailyAtlas=kind=='Daily' and C_Texture and C_Texture.GetAtlasInfo
@@ -57,7 +50,7 @@ function QuestsStartsPickupPinMixin:OnAcquired(cluster, mapID)
             elseif group.starter.kind=='Item' then hasItem=true
             else
                 hasGiver=true
-                offers[questKind(quest.id)]=true
+                offers[ns.GetQuestOfferKind(ns.Data.quests[quest.id])]=true
             end
             if not quest.uncertain then allUncertain = false end
         end
@@ -110,7 +103,7 @@ function ns.QuestText(entry)
 end
 local function pickupQuestText(entry)
     local title,color=ns.QuestText(entry)
-    local kind=questKind(entry.id)
+    local kind=ns.GetQuestOfferKind(ns.Data.quests[entry.id])
     if kind~='Normal' then title=title..' ('..kind..')' end
     return title,color
 end
@@ -233,6 +226,7 @@ function ns.InstallFilter()
             end)
         end
         checkbox(ns.L.questGivers, 'enabled')
+        checkbox(ns.L.repeatableQuests, 'showRepeatable')
         checkbox(ns.L.itemStarts, 'showItems')
         checkbox(ns.L.entrances, 'showEntrances')
         root:CreateDivider()

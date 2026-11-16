@@ -1,4 +1,17 @@
 local _,ns=...
+local pendingEntrance, hookedPlaces
+
+function ns.SetupSpokenEntranceInput(places)
+    if not places or places==hookedPlaces or type(places.CursorArea)~='function' then return end
+    hookedPlaces=places
+    local cursorArea=places.CursorArea
+    places.CursorArea=function(self,...)
+        -- Spoken's mouse-up hook runs after the canvas has consumed the click.
+        -- Skip the outdoor area lookup until that entrance activation is handled.
+        if pendingEntrance and pendingEntrance.mapID==WorldMapFrame:GetMapID() then return end
+        return cursorArea(self,...)
+    end
+end
 
 -- Hover belongs to the pin; clicks belong to the map scroll controller. Its
 -- canvas handler runs only for a completed click, after rejecting map drags.
@@ -9,6 +22,8 @@ end
 
 function ns.HandleCanvasClick(map,button)
     ns.lastMapInput=button
+    -- The dungeon art uses Orgrimmar as its base map.
+    if ns.IsDungeonMapShown() then return button=='LeftButton' end
     if button~='LeftButton' or (IsModifierKeyDown and IsModifierKeyDown()) then return false end
     local cursorX,cursorY=GetCursorPosition()
     local selected,best
@@ -30,13 +45,18 @@ function ns.HandleCanvasClick(map,button)
     if not selected then return false end
     ns.lastMapInput=selected.dungeonID and 'dungeon entrance' or 'quest pickup'
     local mapID=map:GetMapID()
-    -- Snapshot data before any other provider can recycle the frame. Run after
-    -- ScrollContainer hooks, including Spoken's place-story selection.
+    -- Snapshot data before any other provider can recycle the frame.
     local dungeonID,cluster=selected.dungeonID,selected.cluster
     local dungeonIDs=selected.dungeonIDs or (dungeonID and {dungeonID})
-    if dungeonID then ns.entranceClickCount=(ns.entranceClickCount or 0)+1 end
+    local entrance
+    if dungeonID then
+        entrance={mapID=mapID}
+        pendingEntrance=entrance
+        ns.entranceClickCount=(ns.entranceClickCount or 0)+1
+    end
     C_Timer.After(0,function()
-        if not map:IsShown() or map:GetMapID()~=mapID then return end
+        if entrance and pendingEntrance==entrance then pendingEntrance=nil end
+        if not map:IsShown() or map:GetMapID()~=mapID or ns.IsDungeonMapShown() then return end
         if dungeonID then ns.OpenEntranceDungeons(dungeonIDs)
         elseif cluster then
             QuestsStartsPickupPinMixin.OnMouseUpAction({cluster=cluster,mapID=mapID},'LeftButton',selected)

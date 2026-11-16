@@ -41,13 +41,13 @@ return function(ns,check)
     captured={} ns.DrawDungeonEntrances(map,1418)
     check(#captured==2 and #captured[1].ids==1 and #captured[2].ids==1,'different Uldaman entrances remain separate pins')
     C_Map.GetMapRectOnMap=oldRect
-    local oldMenu,oldOpen,oldWaypoint=MenuUtil,ns.OpenDungeons,ns.SetPickupWaypoint
+    local oldMenu,oldShowMap,oldWaypoint=MenuUtil,ns.ShowDungeonMap,ns.SetPickupWaypoint
     local choices,opened={},nil
     MenuUtil={CreateContextMenu=function(owner,generator)
         check(owner==WorldMapFrame,'shared entrance menu has a stable owner across pin refreshes')
         generator(nil,{CreateTitle=function()end,CreateButton=function(_,text,fn)choices[#choices+1]={text=text,fn=fn}end})
     end}
-    ns.OpenDungeons=function(id)opened=id end
+    ns.ShowDungeonMap=function(id)opened=id end
     ns.SetPickupWaypoint=function()error('entrance choices must not create waypoints')end
     ns.OpenEntranceDungeons(group)
     check(#choices==2 and not opened,'shared entrance waits for an explicit dungeon choice')
@@ -72,5 +72,5 @@ return function(ns,check)
     choices[1].fn() check(opened==1584,'covering native marker does not make Depths inaccessible')
     C_Timer=oldTimer GetMouseFoci=oldFoci MouseIsOver=oldOver GetCursorPosition=oldCursor IsModifierKeyDown=oldModifier
     WorldMapFrame.EnumeratePinsByTemplate=oldEnumerate
-    MenuUtil=oldMenu ns.OpenDungeons=oldOpen ns.SetPickupWaypoint=oldWaypoint
+    MenuUtil=oldMenu ns.ShowDungeonMap=oldShowMap ns.SetPickupWaypoint=oldWaypoint
 end

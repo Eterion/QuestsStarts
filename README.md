@@ -25,6 +25,22 @@ Keep Blizzard's quest tracking and add the missing discovery tools: where to pic
 
 ## Data approach
 
+Open the World Map inside a supported dungeon to see its layout.
+Dungeon cards and entrance pins preview the map from outside. On multi-floor
+maps, the dungeon breadcrumb opens a floor menu. The map follows detectable
+floor changes and preserves a manual selection until the next change.
+The nine Forever dungeons use cropped minimap textures referenced by native
+FileDataID. These are terrain previews. Dungeon cards without quest data are
+searchable by name and follow the same map scope as the quest cards.
+The texture coordinates come from the
+[WoW community listfile](https://github.com/wowdev/wow-listfile) and the assets
+were checked against Forever build 1.60.1.70938.
+Use the mouse wheel to zoom, drag to pan, and right-click to return to the
+outdoor map. See the addon's third-party notices for artwork credits.
+
+The World Map tracking menu has a **Repeatable Quests** checkbox for violet
+quest offers. It's enabled by default and applies when **Quest Givers** is on.
+
 Use [QuestieDB's Forever dataset](https://github.com/Questie/QuestieDB) as the proposed upstream source. Generate a compact dataset offline containing the fields needed for discovery; do not require Questie's UI or runtime.
 
 The prototype bundles generated pickup candidates on 47 world-zone/city maps, with 50 maps configured, and preparation data for 21 dungeon groups. Source data is pinned to the revision in `tools/upstream-revision.txt`; see the generated [map coverage report](docs/coverage.md) for counts and empty source maps. Reviewed local corrections are separate from the pinned source; see [data corrections](docs/data-corrections.md). Upstream licensing and provenance notices ship with the addon; see `addon/QuestsStarts/THIRD_PARTY_NOTICES.md`. The upstream statement describes historical licensing uncertainty and is preserved verbatim.
@@ -66,7 +82,7 @@ Build and validate quest-start pins in one zone before expanding coverage or add
 
 ## Status
 
-Version 0.14.0 adds Zone Quests checklists and searchable world, zone, and dungeon lists. It also includes Horde pickup markers across the world zones and cities represented in the source and preparation for 21 dungeon groups:
+The addon includes Zone Quests checklists, searchable world, zone, and dungeon lists, Horde pickup markers, and preparation for 21 dungeon groups:
 
 - 2,225 candidate pickup locations (1,464 NPC/object givers and 761 item sources) on 47 populated maps, including later leveling zones such as Desolace, Dustwallow, Stranglethorn, Tanaris, Feralas, the Hinterlands, Plaguelands, Winterspring, and Silithus. The dataset contains 3,682 quest records including transitive dependencies and dungeon preparation. Counts precede eligibility filtering; [coverage by map](docs/coverage.md) is generated during the build.
 - The 50 configured maps comprise the 46 Classic world-zone/city maps and four mapped Forever areas. Zephras Isle and Shen'dralas have recorded pickup locations. Riverglades, Mount Hyjal, and Deadwind Pass currently have no pickup coordinates in the Horde export; `/qs` identifies this separately from unsupported maps and quests hidden by filters. The export configuration does not prove complete live quest or area availability. [The gap audit](docs/coverage-gaps.md) records the evidence. Darkspear Islands is a battleground and is excluded from overworld coverage.
@@ -81,7 +97,7 @@ Version 0.14.0 adds Zone Quests checklists and searchable world, zone, and dunge
 - Ordinary quest recommendations above player level + 5 are hidden even if their minimum level is low. Existing minimum-level and class/race restrictions still apply.
 - Holiday categories and the prototype's generic-seasonal pickup associations require an active server-calendar holiday. Winter present/New Year sub-windows are also checked. Inactive holidays cannot be revealed by the uncertain-pickups toggle.
 - A native right-side dungeon tab sits below Spoken Places' story tab. With either panel open, both tabs sit beyond the open panel. Without Spoken, the dungeon tab occupies the first slot and hides while its own panel is open. Entrance markers remain an alternate entry point. A **Dungeon Entrances** filter toggles those markers independently of ordinary quest starts.
-- The browser orders the 21 supported dungeon groups for your character's quest levels. Native navigation breadcrumbs show **World → dungeon**, with World returning to the browser and the dungeon arrow offering other instances. The previous back button is removed.
+- The browser follows the current map and orders dungeon groups by your character's quest levels. Selecting a dungeon opens its map when available. Right-clicking returns to the outdoor map and its scoped dungeon list.
 - Dungeon preparation uses the same `DefaultPanelFlatTemplate` shell as Spoken, without a portrait. It matches Spoken's dimensions and location. Selecting dungeons collapses the story through `SpokenPlaces:SetMapPanelCollapsed(true)`; selecting the story closes preparation and reopens the story. No Spoken files are edited. The existing collapsed preference reflects that selection. Closing the map collapses both companion panels. Reopen either panel from its tab.
 - Recommended dungeon ranges appear in the browser and selected dungeon title. A matching native LFG recommendation takes precedence for RFC, WC, and SFK. Fallback bands are RFC 13–18, WC 17–24, SFK 22–30, BFD 24–32, RFK/Gnomeregan 29–38, Scarlet Monastery 30–46, and RFD 37–46. Scarlet Monastery is one checklist covering all four wings. These Classic Era bands are not confirmed for Forever and are separate from quest minimum levels and entrance restrictions. Reference: [ForeverChanges dungeon guide](https://foreverchanges.pro/dungeons).
 - New Forever coverage: Ruins of Lordaeron (15–20), The Hall of Thanes (13–18), Excavation Site: Wetlands (24–29), and City of Dalaran (28–33). These recommendations use [Blizzard's published ranges](https://us.forums.blizzard.com/en/wow/t/krol%E2%80%99dok-stronghold/2349672), separately from quest eligibility. The linked community guide currently gives a different Excavation range; this addon uses the primary Blizzard announcement.

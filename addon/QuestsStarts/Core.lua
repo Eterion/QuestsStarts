@@ -19,6 +19,7 @@ local function playerState()
         holidays=holidays, monthDay=monthDay,
         skill=skill,reputation=reputation,
         showQuestGivers=ns.Settings.enabled,
+        showRepeatable=ns.Settings.showRepeatable,
         showItemStarts=ns.Settings.showItems,
         showTurnedInBooks=ns.Settings.showTurnedInBooks,
         hasItem=function(id,includeBank)
@@ -51,7 +52,8 @@ end
 
 function ns.Refresh()
     if not ns.Provider then return end
-    ns.Provider:RemoveAllData(true)
+    local dungeonMap = ns.IsDungeonMapShown()
+    ns.Provider:RemoveAllData(not dungeonMap)
     ns.lastPinCount = 0
     ns.lastEntranceCount = 0
     ns.lastStats = nil
@@ -60,6 +62,7 @@ function ns.Refresh()
     ns.SyncDock()
     if ns.UpdateDungeonFrame then ns.UpdateDungeonFrame() end
     if ns.UpdateZoneFrame then ns.UpdateZoneFrame() end
+    if dungeonMap then return end
     if not ns.Data then ns.lastReason='Pickup data did not load.' return end
     if UnitFactionGroup('player') ~= ns.Data.faction then ns.lastReason='This prototype covers Horde characters.' return end
     if not WorldMapFrame:IsShown() then ns.lastReason='Open a covered zone map, then run /qs again.' return end
@@ -112,6 +115,7 @@ local function initialize()
     if type(QuestsStartsDB) ~= 'table' then QuestsStartsDB = {} end
     ns.Settings = QuestsStartsDB
     if type(ns.Settings.enabled) ~= 'boolean' then ns.Settings.enabled = true end
+    if type(ns.Settings.showRepeatable) ~= 'boolean' then ns.Settings.showRepeatable = true end
     if type(ns.Settings.showItems) ~= 'boolean' then ns.Settings.showItems = ns.Settings.enabled end
     if type(ns.Settings.showTurnedInBooks) ~= 'boolean' then ns.Settings.showTurnedInBooks = false end
     if type(ns.Settings.includeUnknown) ~= 'boolean' then ns.Settings.includeUnknown = false end
@@ -122,6 +126,7 @@ local function initialize()
     ns.InstallFilter()
     ns.InstallMapInput()
     ns.InstallDungeonButton()
+    ns.InstallDungeonMaps()
     if C_Calendar and C_Calendar.OpenCalendar then C_Calendar.OpenCalendar() end
     ns.QueueRefresh()
 end

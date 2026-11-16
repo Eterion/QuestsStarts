@@ -8,14 +8,23 @@ function ns.SetDungeonIcon(texture)
     texture:SetTexCoord(0,1,0,1)
 end
 
+local function openEntranceDungeon(id)
+    local story=ns.GetStorySurfaces()
+    if story and story:IsShown() then
+        ns.OpenDungeons(id)
+    else
+        ns.ShowDungeonMap(id)
+    end
+end
+
 function ns.OpenEntranceDungeons(ids)
-    if #ids==1 then ns.OpenDungeons(ids[1]) return end
+    if #ids==1 then openEntranceDungeon(ids[1]) return end
     GameTooltip:Hide()
     MenuUtil.CreateContextMenu(WorldMapFrame,function(_,root)
         root:CreateTitle(ns.L.dungeons)
         for _,id in ipairs(ids) do
             local target=id
-            root:CreateButton(ns.Data.dungeons[id].name,function()ns.OpenDungeons(target)end)
+            root:CreateButton(ns.Data.dungeons[id].name,function()openEntranceDungeon(target)end)
         end
     end)
 end
@@ -38,11 +47,15 @@ function ns.DungeonFromNativePin(pin)
             local name=current.name or (current.poiInfo and current.poiInfo.name)
             if current.journalInstanceID and EJ_GetInstanceInfo then name=EJ_GetInstanceInfo(current.journalInstanceID) or name end
             for id,dungeon in pairs(ns.Data.dungeons or {}) do if name==dungeon.name then return id end end
+            for id,definition in pairs(ns.DungeonMaps or {}) do
+                if definition.levelLow and name==definition.name then return id end
+            end
         end
         current=current.GetParent and current:GetParent()
     end
 end
 local function entranceUnderMouse()
+    if ns.IsDungeonMapShown() then return end
     if not ns.Settings or not ns.Settings.showEntrances or not WorldMapFrame:IsShown() or not MouseIsOver then return end
     local insideMap,focus=mapFocus()
     if not insideMap then return end

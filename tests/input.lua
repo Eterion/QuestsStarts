@@ -1,12 +1,12 @@
 return function(ns,check)
-    local oldMap,oldTimer,oldCursor,oldModifier,oldOpen=WorldMapFrame,C_Timer,GetCursorPosition,IsModifierKeyDown,ns.OpenDungeons
+    local oldMap,oldTimer,oldCursor,oldModifier,oldShowMap=WorldMapFrame,C_Timer,GetCursorPosition,IsModifierKeyDown,ns.ShowDungeonMap
     local oldWaypoint,oldMenu=ns.SetPickupWaypoint,MenuUtil
     local pending,opened,waypoint,choices={},nil,nil,{}
     local cursorX,cursorY,modified=400,200,false
     C_Timer={After=function(_,fn)pending[#pending+1]=fn end}
     GetCursorPosition=function()return cursorX,cursorY end
     IsModifierKeyDown=function()return modified end
-    ns.OpenDungeons=function(id)opened=id end
+    ns.ShowDungeonMap=function(id)opened=id end
     ns.SetPickupWaypoint=function(mapID,starter)waypoint={mapID=mapID,x=starter.x}end
     MenuUtil={CreateContextMenu=function(owner,generator)
         check(owner~=nil,'cluster menu retains a real frame owner')
@@ -37,14 +37,24 @@ return function(ns,check)
     local map=WorldMapFrame
     local function flush()local tasks=pending pending={}for _,fn in ipairs(tasks)do fn()end end
     ns.InstallMapInput()
+    local places={CursorArea=function()return mapID,.25,.5 end}
+    ns.SetupSpokenEntranceInput(nil)
+    ns.SetupSpokenEntranceInput({})
+    ns.SetupSpokenEntranceInput(places)
+    local guardedCursorArea=places.CursorArea
+    ns.SetupSpokenEntranceInput(places)
+    check(places.CursorArea==guardedCursorArea,'Spoken input guard installs once when available')
     ns.ConfigurePinInput(entrance) ns.ConfigurePinInput(pickup)
     check(not entrance.clicks and entrance.motion and not pickup.clicks and pickup.motion,'both marker types deliver clicks to canvas and retain tooltips')
     check(map.priority==100,'canvas registration precedes native waypoint and navigation handlers')
     check(map.handler(map,'LeftButton')==true,'canvas claims a click inside the scaled entrance hit rectangle')
-    check(opened==nil,'dungeon action waits until Spoken canvas hooks finish')
+    check(opened==nil and places:CursorArea()==nil,
+        'Spoken sees no area for the same mouse-up consumed by an entrance')
     entrance.dungeonID=nil -- Simulate a provider recycling the pin before the timer.
     flush()
     check(opened==2437,'dungeon opens using captured data after pin recycling without global mouse events')
+    local area,x,y=places:CursorArea()
+    check(area==1454 and x==.25 and y==.5,'Spoken area lookup resumes after the entrance action')
     entrance.dungeonID=2437
     cursorX=600
     check(map.handler(map,'LeftButton')==true,'pickup click uses the same canvas route')
@@ -61,6 +71,7 @@ return function(ns,check)
         generator(nil,{CreateTitle=function()end,CreateButton=function(_,text,fn)choices[#choices+1]=fn end})
     end}
     check(map.handler(map,'LeftButton')==true,'canvas consumes a shared entrance click')
+    check(places:CursorArea()==nil,'shared entrance suppresses the story before its choice menu')
     entrance.dungeonID=nil entrance.dungeonIDs=nil
     flush()
     check(opened==nil and #choices==2,'shared entrance survives frame recycling and opens a choice menu')
@@ -68,10 +79,11 @@ return function(ns,check)
     entrance.dungeonID=2437
     check(map.handler(map,'RightButton')==false,'right click stays with native map navigation')
     modified=true check(map.handler(map,'LeftButton')==false,'modified click stays with native handlers') modified=false
-    cursorX=800 check(map.handler(map,'LeftButton')==false,'empty map click stays with native navigation')
+    cursorX=800 check(map.handler(map,'LeftButton')==false and places:CursorArea()==1454,
+        'ordinary map clicks still reach native navigation and Spoken')
     cursorX=400 opened=nil
     map.handler(map,'LeftButton') mapID=1420 flush()
     check(opened==nil,'map navigation cancels a pending entrance activation')
-    WorldMapFrame=oldMap C_Timer=oldTimer GetCursorPosition=oldCursor IsModifierKeyDown=oldModifier ns.OpenDungeons=oldOpen
+    WorldMapFrame=oldMap C_Timer=oldTimer GetCursorPosition=oldCursor IsModifierKeyDown=oldModifier ns.ShowDungeonMap=oldShowMap
     ns.SetPickupWaypoint=oldWaypoint MenuUtil=oldMenu
 end

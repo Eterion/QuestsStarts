@@ -299,7 +299,7 @@ return function(ns,check,loadAddon)
     PlayerMovementFrameFader,WorldMapFrame.IsMouseOver,GetCVarBool=oldFader,oldMouseOver,oldGetCVarBool
     mapAlpha=1 mapHooks.OnUpdate()
     check(ns.DungeonFrame:GetAlpha()==1 and ns.DungeonButton:GetAlpha()==1,'dungeon panel and tab become opaque when map fading ends')
-    check(ns.DungeonFrame.Navigation==nil and not ns.DungeonFrame.BackButton:IsShown(),'dungeon list uses no breadcrumb or back button')
+    check(ns.DungeonFrame.Navigation==nil,'dungeon list uses no breadcrumbs')
     check(ns.DungeonFrame.Hint==nil,'bottom hints are removed')
     local instanceRow
     for _,row in ipairs(ns.DungeonFrame.Rows)do if row.step.id==2437 then instanceRow=row end end
@@ -321,7 +321,8 @@ return function(ns,check,loadAddon)
     local dungeonFrame=ns.DungeonFrame
     check(dungeonFrame.DetailBanner.points.TOPLEFT[4]==2 and dungeonFrame.DetailBanner.points.TOPRIGHT[4]==-2,
         'detail artwork spans the panel inside its frame border')
-    check(ns.DungeonFrame.BackButton:IsShown(),'dungeon detail offers a back button')
+    check(not ns.DungeonFrame.BackButton and not ns.DungeonFrame.MapButton and not ns.DungeonFrame.EntranceButton,
+        'dungeon detail leaves navigation to the map')
     local headings={}
     for _,header in ipairs(ns.DungeonFrame.Headings) do
         if header:IsShown() then
@@ -347,18 +348,35 @@ return function(ns,check,loadAddon)
     local previousWaypoint=waypoint
     ns.HandleChecklistClick(detail,5724,'available',{inside},ns.CloseDungeons)
     check(waypoint==previousWaypoint,'inside pickup does not produce fake waypoint')
-    ns.OpenDungeons(2437)
-    waypoint,map=nil,nil
-    local entranceButton=ns.DungeonFrame.EntranceButton
-    check(entranceButton:IsShown(),'dungeon detail exposes the entrance action')
-    entranceButton:GetScript('OnClick')(entranceButton)
-    check(map==1454 and waypoint==nil and ns.DungeonFrame:IsShown() and ns.DungeonFrame.dungeonID==2437,
-        'entrance action shows Orgrimmar and keeps the selected dungeon panel open')
+    local showDungeonMap=ns.ShowDungeonMap
+    local getDisplayedDungeon=ns.GetDisplayedDungeonMapID
+    local shownMap
+    ns.ShowDungeonMap=function(id)if id==2437 then shownMap=id browserMapID=1454 end end
+    ns.GetDisplayedDungeonMapID=function()return shownMap end
+    ns.OpenDungeons()
+    ns.DungeonFrame.Rows[1]:GetScript('OnClick')()
+    check(shownMap==2437 and ns.DungeonFrame.dungeonID==2437,'selecting the RFC card opens the map and quests')
+    shownMap=nil
     ns.UpdateDungeonFrame()
-    check(ns.DungeonFrame.dungeonID==2437,'map refresh after entrance navigation preserves the selected dungeon')
-    ns.DungeonFrame.BackButton:GetScript('OnClick')()
     local orgrimmar,localCount=dungeonCards()
-    check(localCount==1 and orgrimmar[2437],'back returns to the dungeon list scoped to the visible map')
+    check(localCount==1 and orgrimmar[2437] and ns.DungeonFrame.dungeonID==nil,
+        'zooming out to the underlying Orgrimmar map switches to the scoped list')
+    ns.OpenEntranceDungeons({2437})
+    ns.UpdateDungeonFrame()
+    check(shownMap==2437 and ns.DungeonFrame.dungeonID==2437,'an open dungeon panel follows entrance navigation')
+    ns.CloseDungeons()
+    shownMap=nil
+    ns.OpenEntranceDungeons({2437})
+    check(shownMap==2437 and not ns.DungeonsOpen and not ns.DungeonFrame:IsShown(),
+        'an entrance opens the dungeon map while leaving the quest panel closed')
+    SpokenPlaces:SetMapPanelCollapsed(false)
+    shownMap=nil
+    ns.OpenEntranceDungeons({2437})
+    check(shownMap==2437 and ns.DungeonsOpen and ns.DungeonFrame.dungeonID==2437
+        and ns.DungeonFrame:IsShown() and not SpokenPlacesPanel:IsShown(),
+        'an entrance replaces a visible Place Story panel with the selected dungeon quests')
+    ns.ShowDungeonMap=showDungeonMap
+    ns.GetDisplayedDungeonMapID=getDisplayedDungeon
     ns.OpenDungeons(2437)
     browserMapID=1414
     ns.UpdateDungeonFrame()
@@ -386,8 +404,8 @@ return function(ns,check,loadAddon)
     check(expandedStep,'expanding a long endgame chain reveals its real prerequisite steps')
     ns.DungeonFrame:Hide()
     local calls=0
-    local oldOpen=ns.OpenDungeons
-    ns.OpenDungeons=function(id)calls=id end
+    local oldShowMap=ns.ShowDungeonMap
+    ns.ShowDungeonMap=function(id)calls=id end
     local entrance=CreateFromMixins(object(),QuestsStartsEntrancePinMixin)
     entrance.Texture=object()
     entrance.Glow=object()
@@ -460,7 +478,7 @@ return function(ns,check,loadAddon)
     ns.Settings.showEntrances=false ns.DrawDungeonEntrances(WorldMapFrame,1454)
     check(portalCount==1 and ns.lastEntranceCount==0,'entrance filter suppresses portals')
     ns.Settings.showEntrances=true WorldMapFrame.AcquirePin=oldDraw
-    ns.OpenDungeons=oldOpen
+    ns.ShowDungeonMap=oldShowMap
     ns.OpenDungeons(2437)
     SpokenPlaces:SetMapPanelCollapsed(false)
     ns.SyncDock()

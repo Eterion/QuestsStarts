@@ -84,31 +84,6 @@ function ns.HandleChecklistClick(owner,id,status,locations,closePanel)
     end)
 end
 
-local function showEntranceMap(owner,dungeon)
-    local maps,seen={},{}
-    for _,entrance in ipairs(dungeon.entrances or {}) do
-        local mapID=entrance.mapID
-        if mapID and not seen[mapID] then
-            maps[#maps+1]=mapID
-            seen[mapID]=true
-        end
-    end
-    local function navigate(mapID)
-        ns.DungeonFrame.mapID=mapID
-        WorldMapFrame:SetMapID(mapID)
-    end
-    if #maps==1 then navigate(maps[1]) end
-    if #maps<2 then return end
-    MenuUtil.CreateContextMenu(owner,function(_,root)
-        for _,mapID in ipairs(maps) do
-            local target=mapID
-            local info=C_Map.GetMapInfo(mapID)
-            root:CreateButton(info and info.name or ns.Data.mapNames[mapID] or tostring(mapID),
-                function()navigate(target)end)
-        end
-    end)
-end
-
 local function stepTooltip(owner,step)
     GameTooltip:SetOwner(owner,'ANCHOR_RIGHT')
     local text=ns.QuestText({id=step.id,uncertain=step.status=='unverified'})
@@ -287,12 +262,14 @@ function ns.UpdateDungeonFrame()
     local data=ns.Data
     if not ns.PositionDungeonFrame() then return end
     local mapID=WorldMapFrame:GetMapID()
-    if frame.mapID~=mapID then
-        frame.mapID,frame.dungeonID=mapID,nil
+    local displayedDungeon=ns.GetDisplayedDungeonMapID()
+    if frame.mapID~=mapID or frame.displayedDungeon~=displayedDungeon then
+        frame.mapID,frame.displayedDungeon,frame.dungeonID=mapID,displayedDungeon,displayedDungeon
         ns.ResetChecklistSearch(frame.Search)
         frame.Scroll:SetVerticalScroll(0)
     end
     local dungeon=frame.dungeonID and data.dungeons[frame.dungeonID]
+    local mapOnly=displayedDungeon and not dungeon and ns.DungeonMaps and ns.DungeonMaps[displayedDungeon]
     local player=ns.GetPlayerState()
     local visible,headingCount,y=0,0,0
     local function heading(text,count)
@@ -339,25 +316,30 @@ function ns.UpdateDungeonFrame()
         row.Status:ClearAllPoints()
         row.Status:SetWordWrap(false)
         if card then
-            ns.SetChecklistBannerArt(row.Art,dungeonArt[step.id],width,cardHeight)
+            ns.SetChecklistBannerArt(row.Art,step.art or dungeonArt[step.id],width,cardHeight)
             title:SetPoint('TOPLEFT',row,'TOPLEFT',12,-9)
             title:SetWidth(math.max(1,width-24))
             title:SetMaxLines(2)
             title:SetWordWrap(true)
             title:SetTextColor(1,.89,.65)
             row:SetText(ns.ChecklistBannerTitle(step.name,step.levelLow,step.levelHigh))
-            local progress=string.format('%d/%d',step.completed,step.total)
-            if step.total>0 and step.completed==step.total then
-                setBadge(row.Progress,'Completed',true,.63,1,.50)
+            local progress
+            if step.mapOnly then
+                row.Progress:Hide()
             else
-                setBadge(row.Progress,progress,false,1,.90,.68)
+                progress=string.format('%d/%d',step.completed,step.total)
+                if step.total>0 and step.completed==step.total then
+                    setBadge(row.Progress,'Completed',true,.63,1,.50)
+                else
+                    setBadge(row.Progress,progress,false,1,.90,.68)
+                end
             end
             row:SetScript('OnClick',function()ns.OpenDungeons(step.id)end)
             row:SetScript('OnEnter',function(self)
                 self.CardBorder:SetBackdropBorderColor(1,.82,.45)
                 GameTooltip:SetOwner(self,'ANCHOR_RIGHT')
                 GameTooltip:SetText(ns.ChecklistBannerTitle(step.name,step.levelLow,step.levelHigh))
-                GameTooltip:AddLine(progress..' completed',1,1,1)
+                GameTooltip:AddLine(progress and progress..' completed' or 'Dungeon map',1,1,1)
                 GameTooltip:Show()
             end)
         else
@@ -400,26 +382,26 @@ function ns.UpdateDungeonFrame()
         y=y+row:GetHeight()+(kind=='instance' and 4 or 0)
     end
     frame.Scroll:ClearAllPoints()
-    local hasEntrance=dungeon and dungeon.entrances and #dungeon.entrances>0
     frame.Search:SetShown(not dungeon)
-    frame.BackButton:SetShown(dungeon~=nil)
-    frame.EntranceButton:SetShown(not not hasEntrance)
-    frame.EntranceButton:SetScript('OnClick',hasEntrance and function(owner)showEntranceMap(owner,dungeon)end or nil)
     if dungeon then
-        frame.Scroll:SetPoint('TOPLEFT',frame.BackButton,'BOTTOMLEFT',0,-8)
+        frame.Scroll:SetPoint('TOPLEFT',frame.DetailBanner,'BOTTOMLEFT',14,-8)
     else
         frame.Scroll:SetPoint('TOPLEFT',frame.Search,'BOTTOMLEFT',-8,-6)
     end
     frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
     frame.DetailBanner:SetShown(dungeon~=nil)
     frame.Empty:Hide()
-    if not dungeon then
+    if mapOnly and mapOnly.levelLow then
+        frame.Search:Hide()
+        frame.Empty:SetText('No quest data for this dungeon.')
+        frame.Empty:Show()
+    elseif not dungeon then
         local entries=ns.ListDungeons(data,player,mapID)
         local query=ns.ChecklistSearchQuery(frame.Search)
         for _,entry in ipairs(entries) do
             if ns.ChecklistSearchMatches(entry.name,query) then acquire(entry,'instance') end
         end
-        frame.Empty:SetText(#entries==0 and 'No dungeons with quest data on this map.' or 'No matching dungeons.')
+        frame.Empty:SetText(#entries==0 and 'No dungeons on this map.' or 'No matching dungeons.')
         frame.Empty:SetShown(visible==0)
     else
         local plan=ns.BuildDungeonPlan(data,frame.dungeonID,player)
@@ -478,15 +460,6 @@ function ns.OpenDungeons(dungeonID)
         frame.CompletedCount:SetPoint('BOTTOMLEFT',banner,'BOTTOMLEFT',14,7)
         frame.InLogCount=ns.CreateQuestBadge(banner,questLogIcon)
         frame.InLogCount:SetPoint('LEFT',frame.CompletedCount,'RIGHT',6,0)
-        frame.BackButton=CreateFrame('Button',nil,frame,'UIPanelButtonTemplate')
-        frame.BackButton:SetSize(60,22)
-        frame.BackButton:SetPoint('TOPLEFT',banner,'BOTTOMLEFT',14,-6)
-        frame.BackButton:SetText(BACK or 'Back')
-        frame.BackButton:SetScript('OnClick',function()ns.OpenDungeons()end)
-        frame.EntranceButton=CreateFrame('Button',nil,frame,'UIPanelButtonTemplate')
-        frame.EntranceButton:SetSize(158,22)
-        frame.EntranceButton:SetPoint('LEFT',frame.BackButton,'RIGHT',6,0)
-        frame.EntranceButton:SetText('Show Entrance on Map')
         frame.Empty=frame:CreateFontString(nil,'OVERLAY','GameFontHighlight')
         frame.Empty:SetPoint('TOPLEFT',frame.Search,'BOTTOMLEFT',-7,-8)
         frame.Empty:SetPoint('RIGHT',frame,'RIGHT',-17,0)
@@ -500,10 +473,12 @@ function ns.OpenDungeons(dungeonID)
         ns.DungeonFrame=frame
     end
     if ns.CloseZoneQuests then ns.CloseZoneQuests() end
+    ns.ShowDungeonMap(dungeonID)
     local mapID=WorldMapFrame:GetMapID()
     if ns.DungeonFrame.mapID~=mapID then ns.ResetChecklistSearch(ns.DungeonFrame.Search) end
     ns.DungeonFrame.mapID=mapID
-    ns.DungeonFrame.dungeonID=dungeonID and ns.Data.dungeons[dungeonID] and dungeonID or nil
+    ns.DungeonFrame.displayedDungeon=ns.GetDisplayedDungeonMapID()
+    ns.DungeonFrame.dungeonID=ns.DungeonFrame.displayedDungeon or (dungeonID and ns.Data.dungeons[dungeonID] and dungeonID)
     if ns.DungeonFrame.dungeonID then ns.DungeonFrame.Search:ClearFocus() end
     ns.DungeonsOpen=true
     local story=ns.GetStorySurfaces()

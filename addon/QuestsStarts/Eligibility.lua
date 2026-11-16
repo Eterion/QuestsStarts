@@ -4,6 +4,13 @@ local function hasBit(mask, value)
 end
 ns.HasBit = hasBit
 
+function ns.GetQuestOfferKind(quest)
+    -- QuestieDB questFlags.DAILY takes precedence over specialFlags.REPEATABLE.
+    if quest and hasBit(quest.questFlags or 0,4096) then return 'Daily' end
+    if quest and hasBit(quest.specialFlags or 0,1) then return 'Repeatable' end
+    return 'Normal'
+end
+
 -- Pure state evaluation shared by the UI and offline behavioral tests.
 -- true = passes supported checks, false = known unavailable, nil = unknown requirement.
 function ns.IsAvailable(id, quests, state)
@@ -112,6 +119,8 @@ function ns.BuildGroups(data, mapID, state, includeUnknown, nativeOffers)
                 available,reason=false,'item sources hidden'
             elseif not itemSource and state.showQuestGivers==false then
                 available,reason=false,'quest givers hidden'
+            elseif not itemSource and state.showRepeatable==false and ns.GetQuestOfferKind(data.quests[id])=='Repeatable' then
+                available,reason=false,'repeatable quests hidden'
             end
             if available~=false and starter.kind=='Item' and state.hasItem and state.hasItem(starter.id) then
                 available,reason=false,'quest item in bags'

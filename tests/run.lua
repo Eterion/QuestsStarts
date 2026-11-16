@@ -152,6 +152,10 @@ Menu={ModifyMenu=function(tag,callback)check(tag=='MENU_WORLD_MAP_TRACKING','nat
 loadAddon('Locale.lua') loadAddon('Map.lua') loadAddon('Entrances.lua') loadAddon('Input.lua') loadAddon('DungeonUI.lua') loadAddon('ZoneUI.lua')
 -- Shared-dock lifecycle is exercised with stateful native-template doubles below.
 ns.InstallDungeonButton=function()end ns.SyncDock=function()end ns.QueueDock=function()end
+ns.InstallDungeonMaps=function()end
+ns.IsDungeonMapShown=function()return false end
+ns.GetDisplayedDungeonMapID=function()end
+ns.ShowDungeonMap=function()end
 ns.CloseDungeons=function()ns.DungeonsOpen=false if ns.DungeonFrame then ns.DungeonFrame:Hide()end end
 CreateFrame=function(kind,name)return {SetScript=function(_,script,fn)if kind=='Frame' and name==nil and script=='OnEvent' then handler=fn end end,RegisterEvent=function()end,SetSize=function()end,SetPoint=function()end,SetText=function()end} end
 C_Timer={After=function(_,fn)timers[#timers+1]=fn end}
@@ -179,19 +183,33 @@ handler(nil,'ADDON_LOADED','QuestsStarts')
 check(type(menuCallback)=='function','menu modification installed')
 local menuButtons=0
 local filterLabels={}
+local filterSetters={}
 local rootMenu={CreateDivider=function()end,CreateTitle=function(_,label)check(label=='QuestsStarts','addon filters have a heading')end,
     CreateCheckbox=function(_,label,getter,setter)
         check(type(getter())=='boolean','filter state')
         menuCount=menuCount+1
         filterLabels[menuCount]=label
+        filterSetters[label]=setter
     end,CreateButton=function()menuButtons=menuButtons+1 end}
 menuCallback(nil,rootMenu)
-check(menuCount==5,'native menu includes an independent collected-books filter')
-check(table.concat(filterLabels,'|')=='Quest Givers|Quest-Starting Items and Books|Dungeon Entrances|Turned-In Library Books|Unverified Quest Pickups',
+check(menuCount==6,'native menu includes repeatable and collected-books filters')
+check(table.concat(filterLabels,'|')=='Quest Givers|Repeatable Quests|Quest-Starting Items and Books|Dungeon Entrances|Turned-In Library Books|Unverified Quest Pickups',
     'primary map filters come before supplemental filters')
+check(ns.GetPlayerState().showRepeatable==true,'repeatable markers remain visible by default')
+filterSetters['Repeatable Quests']()
+check(ns.GetPlayerState().showRepeatable==false,'map filter toggles repeatable markers off')
+filterSetters['Repeatable Quests']()
 check(menuButtons==0,'map filter contains no redundant dungeon navigation item')
 local pending=timers timers={} for _,fn in ipairs(pending)do fn()end
 check(acquired>0,'real generated data produces map pins')
+WorldMapFrame.questsStartsEntrances={}
+ns.IsDungeonMapShown=function()return true end
+ns.Refresh()
+check(acquired==0 and not WorldMapFrame.questsStartsEntrances,'RFC overlay clears the city pins')
+check(ns.HandleCanvasClick(WorldMapFrame,'LeftButton'),'RFC consumes the left click before city pin selection')
+ns.IsDungeonMapShown=function()return false end
+ns.Refresh()
+check(acquired>0,'ordinary map pins resume after leaving the RFC overlay')
 C_QuestLog.GetTitleForQuestID=function()end
 GetQuestDifficultyColor=function()return {r=1,g=.5,b=0}end
 local text,color=ns.QuestText({id=363})
@@ -318,4 +336,5 @@ assert(loadfile(root..'/tests/dungeon-expansion.lua'))()(ns,check)
 assert(loadfile(root..'/tests/forever-dungeons.lua'))()(ns,check)
 assert(loadfile(root..'/tests/endgame-dungeons.lua'))()(ns,check)
 assert(loadfile(root..'/tests/input.lua'))()(ns,check)
+assert(loadfile(root..'/tests/dungeon-maps.lua'))()(ns,check,loadAddon,root)
 print('Passed '..checks..' checks (offline; in-game appearance is not validated).')

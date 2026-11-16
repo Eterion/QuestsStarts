@@ -134,7 +134,8 @@ function ns.ListDungeons(data,player,mapID)
     local world=not mapID or ns.IsChecklistWorldMap(mapID)
     local continentID=not world and ns.GetChecklistContinent(mapID)
     local continentScope=continentID==mapID and continentID or nil
-    for id,dungeon in pairs(data.dungeons or {}) do
+    local dungeons=data.dungeons or {}
+    for id,dungeon in pairs(dungeons) do
         if world or hasEntranceOnMap(dungeon,mapID,continentScope) then
             local plan=ns.BuildDungeonPlan(data,id,player)
             local minimum,available=math.huge,0
@@ -148,6 +149,14 @@ function ns.ListDungeons(data,player,mapID)
                 list[#list+1]={id=id,name=dungeon.name,minLevel=minimum<math.huge and minimum or nil,
                     levelLow=low,levelHigh=high,eligible=player.level>=minimum,available=available,accepted=plan.accepted,completed=plan.completed,total=plan.total}
             end
+        end
+    end
+    for id,definition in pairs(ns.DungeonMaps or {}) do
+        if definition.levelLow and not dungeons[id] and
+            (world or definition.parent==mapID or (continentScope and ns.GetChecklistContinent(definition.parent)==continentScope)) then
+            list[#list+1]={id=id,name=definition.name,minLevel=definition.levelLow,
+                levelLow=definition.levelLow,levelHigh=definition.levelHigh,
+                eligible=player.level>=definition.levelLow,mapOnly=true,art=definition.art}
         end
     end
     table.sort(list,function(a,b)
