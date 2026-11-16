@@ -59,6 +59,10 @@ Reproduction scripts and the source revision are included in the project reposit
 
 ## Classic dungeon maps
 
+The illustrated Ruins of Lordaeron surface uses Blizzard map symbols isolated
+from Stratholme's Crusader's Square and Blackrock Depths' Detention Block.
+The parchment texture is based on a sample from the Detention Block map.
+
 The unchanged Ragefire Chasm, Razorfen Kraul, and Scholomance map tiles are from
 `Media/Dungeons/Ragefire_Old`, `RazorfenKraul_Old`, and `Scholomance_Old` in YanHuo's
 [ClassicDungeonMaps Forever release 9567661](https://www.curseforge.com/wow/addons/classicdungeonmaps/files/9567661).

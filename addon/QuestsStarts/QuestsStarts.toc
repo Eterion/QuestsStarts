@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: QuestsStarts
 ## Notes: Quest pickup locations on Blizzard's world map.
-## Version: 0.15.0
+## Version: 0.16.0
 ## Category: Quests
 ## X-GitHub: https://github.com/Eterion/QuestsStarts
 ## IconTexture: Interface\Icons\INV_Misc_Map_01

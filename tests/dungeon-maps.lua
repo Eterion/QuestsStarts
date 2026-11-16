@@ -163,13 +163,17 @@ return function(ns, check, loadAddon, root)
     check(ns.IsDungeonMapShown(),'RFC can be previewed outside the instance')
     ns.ShowDungeonMap(16611)
     check(ns.GetDisplayedDungeonMapID()==16611 and mapID==1458
-        and art.textures[2].file==7255736 and art.textures[5].file==7255760
-        and not art.textures[6].shown,
-        'Lordaeron uses four native minimap textures and hides unused Classic tiles')
-    check(art.textures[2].crop[1]==8/512 and art.textures[2].crop[3]==158/512,
-        'Lordaeron crops the surrounding terrain')
-    check(math.abs(art.textures[2].width / art.textures[2].height - 504/354)<0.0001,
-        'Lordaeron preserves the source tile aspect ratio')
+        and art.textures[2].file:find('RuinsOfLordaeron',1,true) and art.textures[13].shown,
+        'Lordaeron loads the illustrated surface at native Classic dimensions')
+    for i=1,12 do
+        local asset=assert(io.open(root..'/addon/QuestsStarts/Maps/RuinsOfLordaeron/Surface_'..i..'.tga','rb'))
+        local header=asset:read(18)
+        asset:close()
+        check(header:byte(3)==2 and header:byte(13)==0 and header:byte(14)==1
+            and header:byte(15)==0 and header:byte(16)==1,
+            'illustrated tile uses a 256x256 uncompressed TGA')
+    end
+    check(#frames==3,'Lordaeron symbols are baked into the tiles rather than allocated as frames')
     ns.ShowDungeonMap(2437)
     check(art.textures[13].shown and art.textures[13].width==235,
         'returning to a Classic dungeon restores its art')

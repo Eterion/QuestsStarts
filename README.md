@@ -29,9 +29,15 @@ Open the World Map inside a supported dungeon to see its layout.
 Dungeon cards and entrance pins preview the map from outside. On multi-floor
 maps, the dungeon breadcrumb opens a floor menu. The map follows detectable
 floor changes and preserves a manual selection until the next change.
-The nine Forever dungeons use cropped minimap textures referenced by native
-FileDataID. These are terrain previews. Dungeon cards without quest data are
-searchable by name and follow the same map scope as the quest cards.
+The Ruins of Lordaeron surface uses custom parchment artwork based on the client
+minimap, with seven shaded encounter areas, skull markers, and an entrance
+whirlpool. Encounter points
+use the [tile registration notes](https://gist.github.com/psykzz/1daf01c36528a3b2a0430ffb0d7f1d17)
+and [Hyjal's dungeon map](https://hyjal.cc/dungeons/ruins-of-lordaeron).
+The other Forever dungeons use cropped minimap textures referenced by native
+FileDataID. Separate interior floor art is still pending. Dungeons without quest
+data are searchable in the Dungeon Quests list by name and use the same map
+scope as the other cards.
 The texture coordinates come from the
 [WoW community listfile](https://github.com/wowdev/wow-listfile) and the assets
 were checked against Forever build 1.60.1.70938.

@@ -89,11 +89,7 @@ ns.DungeonMaps = {
         }),
     } },
     [16611] = { instanceID=2999, parent=1458, floors={
-        -- Outdoor tiles (31,28) to (32,29), cropped to the ruins.
-        terrain("Surface", 2, 8, 158, 580, 670, {
-            7255736, 7255742,
-            7255754, 7255760,
-        }),
+        floor(nil, "Surface", bundled("RuinsOfLordaeron", "Surface_"), nil, ".tga"),
     } },
     [2437] = { instanceID=389, parent=1454, floors={
         floor(213, "Ragefire Chasm", bundled("RagefireChasm", "RFC_"), nil, ".tga"),
