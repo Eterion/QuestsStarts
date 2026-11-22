@@ -1,6 +1,41 @@
 # In-game check: Horde zones and capitals
 
+## Blocked interface actions
+
+After `/reload`, confirm the installed build with `/qs`. Open and close the map,
+maximize and minimize it, and switch between Dungeon Quests, Zone Quests, and
+Place Story. Repeat with other Blizzard windows open and during/after combat.
+Run `/qs blocked`: the expected count is zero. If it is nonzero, run `/reload`
+to persist the bounded trace for inspection. Check that the map, tabs, and story
+still lay out correctly. The dock no longer moves or hides other native windows,
+so also inspect windowed-panel overlap. See [the investigation](blocked-actions.md).
+
 The offline checks validate rules and runtime calls against client doubles, not the live client. Record the actual build, character race/class/level, any Lua error, and a screenshot when evaluating this prototype.
+
+For dungeon-list controls, open a map without a dungeon and click **Browse all
+dungeons**. It should uncheck **Current map** and show the world list. Both controls
+use the same action. Also check **Clear search** after an unmatched search.
+
+An unchanged empty state must remain visible through refreshes, including while
+the search box loses focus. Hiding its parent between mouse-down and mouse-up
+can cancel the click. The regression now checks that the parent stays visible
+and the click handler stays installed; earlier callback-only checks missed this.
+Both side panels use darker plain parchment for populated lists and restore the
+native spiderweb artwork for empty states. Verify readability and native mouse
+delivery in game.
+
+Switch between windowed and maximized maps with each of Dungeon Quests, Zone
+Quests, and Place Story selected. Windowed panels must retain their native frame,
+title and close button beside icon tabs. Maximized panels use content-sized text
+tabs and Blizzard's quest-list border with its top filigree on all three side
+panels, with no extra title bar. The map viewport retains its plain inset border.
+Check at 1920x1080 and 2560x1440 with the native quest log open
+and closed: the map artwork should fill the viewport proportionally. Repeat the
+mode switch to check that titles, page insets and borders restore correctly.
+
+On 19 November 2026, the owner confirmed in build `0.16.0-dev.6` that **Browse all
+dungeons** now unchecks **Current map** and displays the world list. The plain
+parchment's final appearance has not yet received an in-game review.
 
 1. After deployment completes, run `/reload`. If QuestsStarts is absent from the AddOns list, restart the client once and enable it. Run `/qs` to confirm version 0.9.1.
 2. Open the Tirisfal Glades zone map. Inspect the yellow quest-start markers. Hover a known quest giver: the tooltip should show the starter name and eligible quest titles, with no duplicate title at that pickup.
@@ -100,7 +135,7 @@ Version 0.4.1 also accepts a plain click on the native dungeon entrance/area-POI
 
 ## Entrance appearance and refresh stability (0.10.1)
 
-On the world map, leave slightly overlapping entrance icons visible while standing and moving. Their stacking must remain stable across quest and canvas refreshes. Repeat on continent and zone maps. Hovering an entrance should add its glow; moving away, changing maps, or hiding the map must clear it. Toggling Dungeon Entrances off and on must remove and restore all markers. Entrance tooltips and clicks, including the shared Blackrock choice menu, must retain their behavior.
+On a zone map, leave slightly overlapping entrance icons visible while standing and moving. Their stacking must remain stable across quest and canvas refreshes. Zoom out to continent and world maps: addon entrance markers must disappear. Zoom back into the zone: they must return. Hovering an entrance should add its glow; moving away, changing maps, or hiding the map must clear it. Toggling Dungeon Entrances off and on must remove and restore all markers. Entrance tooltips and clicks, including the shared Blackrock choice menu, must retain their behavior.
 
 The dungeon browser should show larger 24-pixel portal icons without glow and keep both title and summary text clear of the icon. Open a dungeon after viewing the browser to check that recycled quest rows retain their smaller quest icons and original text gutter. Offline regression checks cover same-map frame retention, filter invalidation, hover/release cleanup, and the list gutter. Live world-map stacking and appearance still need in-game confirmation.
 

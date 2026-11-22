@@ -95,7 +95,8 @@ ns.DungeonMaps = {
         floor(213, "Ragefire Chasm", bundled("RagefireChasm", "RFC_"), nil, ".tga"),
     } },
     [718] = { instanceID=43, parent=1413, floors={
-        floor(279, "Wailing Caverns", native("WailingCaverns", "WailingCaverns1_")),
+        -- Pre-4.1 Blizzard art retains the Classic Winding Chasm.
+        floor(279, "Wailing Caverns", bundled("WailingCaverns", "WailingCaverns1_")),
     } },
     [209] = { instanceID=33, parent=1421, floors={
         floor(310, "The Courtyard", native("ShadowfangKeep", "ShadowfangKeep1_")),
@@ -104,7 +105,7 @@ ns.DungeonMaps = {
         floor(312, "The Vacant Den", native("ShadowfangKeep", "ShadowfangKeep3_")),
         floor(313, "Lower Observatory", native("ShadowfangKeep", "ShadowfangKeep4_")),
         floor(314, "Upper Observatory", native("ShadowfangKeep", "ShadowfangKeep5_")),
-        floor(315, "Lord Godfrey's Chamber", native("ShadowfangKeep", "ShadowfangKeep6_")),
+        floor(315, "Arugal's Chamber", native("ShadowfangKeep", "ShadowfangKeep6_")),
     } },
     [719] = { instanceID=48, parent=1440, floors={
         floor(221, "The Pool of Ask'Ar", native("BlackfathomDeeps", "BlackfathomDeeps1_"), {"The Drowned Sacellum"}),
@@ -140,12 +141,15 @@ ns.DungeonMaps = {
         floor(220, "The Temple of Atal'Hakkar", native("TheTempleofAtalhakkar", "TheTempleofAtalHakkar1_")),
     } },
     [1583] = { instanceID=229, parent=1427, floors={
-        floor(253, "Hall of Blackhand", native("BlackrockSpire", "BlackrockSpire4_"), {"Dragonspire Hall", "The Rookery"}),
-        floor(252, "Hordemar City", native("BlackrockSpire", "BlackrockSpire3_")),
-        floor(251, "Skitterweb Tunnels", native("BlackrockSpire", "BlackrockSpire2_")),
-        floor(250, "Tazz'Alor", native("BlackrockSpire", "BlackrockSpire1_")),
-        floor(254, "Halycon's Lair", native("BlackrockSpire", "BlackrockSpire5_"), {"The Storehouse"}),
-        floor(255, "Chamber of Battle", native("BlackrockSpire", "BlackrockSpire6_")),
+        -- Original seven-sheet Blizzard set, before Upper Spire was split out.
+        -- Sheets 5 and 6 include both wings at their respective elevations.
+        floor(253, "Hall of Blackhand", bundled("BlackrockSpire", "BlackrockSpire4_")),
+        floor(252, "Hordemar City", bundled("BlackrockSpire", "BlackrockSpire3_")),
+        floor(251, "Skitterweb Tunnels", bundled("BlackrockSpire", "BlackrockSpire2_")),
+        floor(250, "Tazz'Alor", bundled("BlackrockSpire", "BlackrockSpire1_")),
+        floor(254, "Halycon's Lair / Dragonspire Hall", bundled("BlackrockSpire", "BlackrockSpire5_"), {"Halycon's Lair", "The Storehouse", "Dragonspire Hall"}),
+        floor(255, "Chamber of Battle / Hall of Binding", bundled("BlackrockSpire", "BlackrockSpire6_"), {"Chamber of Battle", "Hall of Binding", "The Rookery"}),
+        floor(nil, "Blackrock Stadium", bundled("BlackrockSpire", "BlackrockSpire7_"), {"The Furnace", "Spire Throne", "The Molten Span"}),
     } },
     [1584] = { instanceID=230, parent=1427, floors={
         floor(242, "Detention Block", native("BlackrockDepths", "BlackrockDepths1_"), {"Hall of Crafting", "Dark Iron Highway", "Halls of the Law"}),

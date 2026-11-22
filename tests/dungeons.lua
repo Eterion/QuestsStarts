@@ -83,9 +83,15 @@ return function(ns,check,loadAddon)
     for _,method in ipairs({'SetNormalFontObject','SetJustifyH','SetJustifyV','SetWordWrap','SetMaxLines','SetTexture','SetAtlas','SetTexCoord','SetAlpha','SetTextColor','SetClampedToScreen','SetFrameStrata','SetTitle','SetPortraitToAsset','SetScrollChild','SetEnabled','SetVerticalScroll'}) do value[method]=function()end end
         for _,method in ipairs({'SetAllPoints','SetBackdropColor','SetBackdropBorderColor','SetShadowColor','SetShadowOffset','SetHitRectInsets'}) do value[method]=function()end end
         value.SetBackdrop=function(self,style)self.backdrop=style end
+        value.SetAtlas=function(self,atlas)self.atlas=atlas end
+        value.SetHorizTile=function()end
+        value.SetVertTile=function()end
+        value.SetVertexColor=function()end
+        value.SetDesaturated=function()end
         value.GetStringHeight=function()return 14 end
         value.GetStringWidth=function(self)return #(self.text or '')*6 end
         value.GetEffectiveScale=function()return 1 end
+        value.GetParent=function(self)return self.parent end
         value.GetRight=function()return nil end
         value.GetAlpha=function(self)return self.alpha or 1 end
         value.SetAlpha=function(self,alpha)self.alpha=alpha end
@@ -114,6 +120,7 @@ return function(ns,check,loadAddon)
         value.GetHeight=function(self)return self.height end
         value.SetSize=function(self,width,height)self.width=width self.height=height end
         value.SetText=function(self,text)self.text=text end
+        value.SetTitle=function(self,title)self.title=title end
         value.GetText=function(self)return self.text end
         value.SetScript=function(self,name,fn)self.scripts[name]=fn end
         value.GetScript=function(self,name)return self.scripts[name]end
@@ -129,7 +136,8 @@ return function(ns,check,loadAddon)
             local texture=object()
             texture.SetAllPoints=function(self,parent)self.fill=parent end
             texture.SetTexture=function(self,id)self.file=id return true end
-            texture.SetColorTexture=function()end
+            texture.SetTexCoord=function(self,...)self.texCoord={...}end
+            texture.SetColorTexture=function(self,...)self.color={...}end
             texture.SetGradient=function(self,direction,bottom,top)self.gradient={direction,bottom,top}end
             return texture
         end
@@ -137,6 +145,8 @@ return function(ns,check,loadAddon)
         return value
     end
     local oldCreateFrame=CreateFrame
+    local oldNineSliceUtil=NineSliceUtil
+    NineSliceUtil={ApplyLayoutByName=function(frame,layout)frame.layout=layout end}
     local oldProgressMixin=ColoredProgressBarMixin
     ColoredProgressBarMixin={ColorType={Blue=3,Green=2}}
     CreateFrame=function(kind,name,parent,template)
@@ -144,6 +154,17 @@ return function(ns,check,loadAddon)
         frame.template=template frame.parent=parent
         if template=='QuestTitleButtonTemplate' or template=='LargeSideTabButtonTemplate' then frame.Icon=object()end
         if template=='ButtonFrameTemplate' then frame.Inset=object()end
+        if template=='DefaultPanelFlatTemplate' then
+            frame.NineSlice=object()
+            frame.NineSlice:Show()
+            frame.TitleContainer=object()
+            frame.TitleContainer:Show()
+            frame.Bg=object()
+            for _,key in ipairs({'BottomLeft','BottomRight','BottomEdge','TopSection'}) do
+                frame.Bg[key]=object()
+                frame.Bg[key]:Show()
+            end
+        end
         if template=='ListHeaderVisualTemplate' then frame.CollapseButton=object() frame.ButtonText=object() end
         if template=='ColoredProgressBarTemplate' then
             frame.SetFillPercent=function(self,fraction)self.fraction=fraction end
@@ -193,8 +214,8 @@ return function(ns,check,loadAddon)
     local oldGetAttribute,oldSetPanel,oldUpdatePanels=WorldMapFrame.GetAttribute,SetUIPanelAttribute,UpdateUIPanelPositions
     local extraWidth=12
     WorldMapFrame.GetAttribute=function(_,key)if key=='UIPanelLayout-extraWidth' then return extraWidth end end
-    SetUIPanelAttribute=function(_,_,value)extraWidth=value end
-    UpdateUIPanelPositions=function()end
+    SetUIPanelAttribute=function()error('native panel attributes must not be mutated by the dock')end
+    UpdateUIPanelPositions=function()error('forbidden panel-position dispatcher must not be called by the dock')end
     SpokenPlacesPanel.GetRight=function()return 1120 end
     local places,story,storyTab=SpokenPlaces,SpokenPlacesPanel,SpokenPlacesPanelToggle
     SpokenPlaces,SpokenPlacesPanel,SpokenPlacesPanelToggle=nil,nil,nil
@@ -214,9 +235,9 @@ return function(ns,check,loadAddon)
         'disabled Spoken map panel uses the standalone layout')
     places.Get=nil
     ns.SyncDock()
-    check(extraWidth==332,'visible Spoken panel adds its measured overhang to the native allowance')
+    check(extraWidth==12,'visible companions leave native panel layout attributes untouched')
     ns.SyncDock()
-    check(extraWidth==332,'repeated layout refreshes do not count the overhang twice')
+    check(extraWidth==12,'repeated layouts do not dispatch protected native panel reflows')
     local oldGetUIPanel,oldHidePanel=GetUIPanel,HideUIPanel
     local spellbook=object()
     GetUIPanel=function(slot)if slot=='center' then return spellbook end end
@@ -229,14 +250,20 @@ return function(ns,check,loadAddon)
     SpokenPlacesPanel.GetLeft=function()return 800 end
     spellbook:Show()
     ns.SyncDock()
-    check(spellbook.point and spellbook.point[4]==1128,'an already-open Spellbook moves past the visible companion')
+    check(not spellbook.point,'an already-open Blizzard panel is never reanchored by the companion dock')
     local screenWidth=UIParent.GetWidth
     UIParent.GetWidth=function()return 1300 end
     HideUIPanel=function(sheet)sheet:Hide()end
     ns.SyncDock()
-    check(not spellbook:IsShown(),'an overlapping Spellbook closes if the remaining width is too small')
+    check(spellbook:IsShown(),'an overlapping Blizzard panel is never forcibly hidden by the companion dock')
     UIParent.GetWidth=screenWidth
     GetUIPanel,HideUIPanel=oldGetUIPanel,oldHidePanel
+    local oldCombat=InCombatLockdown
+    local beforeCombat=ns.DungeonButton.point
+    InCombatLockdown=function()return true end
+    ns.SyncDock()
+    check(ns.DungeonButton.point==beforeCombat,'native and companion layout mutations are deferred during combat')
+    InCombatLockdown=oldCombat
     check(ns.DungeonButton.point[2]==ns.ZoneButton and ns.ZoneButton.point[2]==SpokenPlacesPanel
         and SpokenPlacesPanelToggle.point[2]==SpokenPlacesPanel,'windowed tabs stack in story, zone, dungeon order')
     local queueDock=ns.QueueDock
@@ -253,7 +280,30 @@ return function(ns,check,loadAddon)
     WorldMapFrame.GetMapID=function()return browserMapID end
     ns.OpenDungeons()
     check(ns.DungeonFrame and ns.DungeonFrame:IsShown(),'native dungeon companion opens')
+    check(ns.DungeonFrame.NineSlice:IsShown() and ns.DungeonFrame.TitleContainer:IsShown()
+        and ns.DungeonFrame.title==ns.L.dungeons and ns.DungeonFrame.Search.points.TOPLEFT[5]==-33,
+        'windowed icon tabs retain a titled native panel and its header spacing')
     check(ns.DungeonFrame.dungeonID==nil and #ns.DungeonFrame.Rows==21,'world map lists all known instances before selection')
+    check(ns.DungeonFrame.MapScope:GetChecked() and ns.DungeonFrame.MapScope.Text.text==ns.L.currentMap,
+        'dungeon browser starts with the labelled current-map checkbox enabled')
+    check(ns.DungeonFrame.PanelSurface.Base.color[4]==1
+        and ns.DungeonFrame.PanelSurface.Background.file=='Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal-Desaturated'
+        and ns.DungeonFrame.PanelSurface.Background:GetAlpha()==1
+        and ns.DungeonFrame.PanelSurface.Art==nil and ns.DungeonFrame.PanelSurface.Grain==nil,
+        'dungeon panel uses plain opaque parchment without the quest-log illustration or loading-screen art')
+    check(ns.DungeonFrame.PanelSurface==ns.DungeonFrame.Bg and not ns.DungeonFrame.Bg.TopSection:IsShown(),
+        'opaque styling replaces the native translucent fill while keeping its frame shell')
+    local originalWidth,originalHeight=ns.DungeonFrame:GetWidth(),ns.DungeonFrame:GetHeight()
+    for _,size in ipairs({{320,500},{480,300}}) do
+        ns.DungeonFrame:SetSize(size[1],size[2])
+        for _,hook in ipairs(ns.DungeonFrame.hooks.OnSizeChanged or {}) do hook(ns.DungeonFrame) end
+        local crop=ns.DungeonFrame.PanelSurface.Background.texCoord
+        local sourceWidth,sourceHeight=(crop[2]-crop[1])*512,(crop[4]-crop[3])*256
+        check(math.abs(sourceWidth/sourceHeight-(size[1]-8)/(size[2]-18))<.000001,
+            'parchment crop preserves the source grain proportions on tall and wide panels')
+    end
+    ns.DungeonFrame:SetSize(originalWidth,originalHeight)
+    for _,hook in ipairs(ns.DungeonFrame.hooks.OnSizeChanged or {}) do hook(ns.DungeonFrame) end
     local function dungeonCards()
         local ids,count={},0
         for _,row in ipairs(ns.DungeonFrame.Rows) do
@@ -276,6 +326,78 @@ return function(ns,check,loadAddon)
     browserMapID=1411
     ns.UpdateDungeonFrame()
     check(ns.DungeonFrame.Empty:IsShown(),'zone without a dungeon has an empty state')
+    check(ns.DungeonFrame.Empty.text==ns.L.noDungeonsHere and ns.DungeonFrame.EmptyDescription.text==ns.L.noDungeonsHereHint
+        and ns.DungeonFrame.EmptyAction:IsShown(),'empty dungeon map explains the absence and offers a next step')
+    check(ns.DungeonFrame.EmptyState.parent==ns.DungeonFrame.Content
+        and ns.DungeonFrame.EmptyAction.parent==ns.DungeonFrame.EmptyState
+        and ns.DungeonFrame.Content:GetHeight()>=288
+        and ns.DungeonFrame.EmptyAction.registeredClick=='LeftButtonUp',
+        'empty-state button is inside the scroll content with real layout space and a registered mouse-up click')
+    check(ns.DungeonFrame.Empty.points.TOPRIGHT[1]=='TOPRIGHT'
+        and ns.DungeonFrame.EmptyDescription.points.TOPRIGHT[1]=='TOPRIGHT',
+        'empty text uses matching top anchors rather than stretching through its parent center')
+    local panelMaterial=ns.DungeonFrame.PanelSurface.Background.file
+    check(ns.DungeonFrame.PanelSurface.EmptyBackground:IsShown()
+        and ns.DungeonFrame.PanelSurface.EmptyBackground.atlas=='QuestLog-empty-quest-background',
+        'empty dungeon map restores the native spiderweb background')
+    local emptyWidth,emptyHeight=ns.DungeonFrame:GetWidth(),ns.DungeonFrame:GetHeight()
+    for _,size in ipairs({{320,500},{340,1100},{520,320}}) do
+        ns.DungeonFrame:SetSize(size[1],size[2])
+        for _,hook in ipairs(ns.DungeonFrame.hooks.OnSizeChanged or {}) do hook(ns.DungeonFrame) end
+        local background=ns.DungeonFrame.PanelSurface.EmptyBackground
+        local crop=background.texCoord
+        local sourceRatio=((crop[2]-crop[1])*307)/((crop[4]-crop[3])*510)
+        check(background.fill==ns.DungeonFrame.PanelSurface
+            and math.abs(sourceRatio-(size[1]-8)/(size[2]-18))<.000001,
+            'spiderweb art covers the whole normal, maximized and wide panel without distortion')
+        check(crop[1]>=0 and crop[2]==1 and crop[3]==0 and crop[4]<=1,
+            'spiderweb cropping stays within the texture and preserves the top-right decoration')
+    end
+    ns.DungeonFrame:SetSize(emptyWidth,emptyHeight)
+    for _,hook in ipairs(ns.DungeonFrame.hooks.OnSizeChanged or {}) do hook(ns.DungeonFrame) end
+    local emptyHideCount=0
+    ns.DungeonFrame.EmptyState:HookScript('OnHide',function()emptyHideCount=emptyHideCount+1 end)
+    local emptyClick=ns.DungeonFrame.EmptyAction:GetScript('OnClick')
+    ns.UpdateDungeonFrame()
+    ns.DungeonFrame.Search:SetText('')
+    check(emptyHideCount==0,'refresh between mouse-down and mouse-up must not hide the empty-state button parent and cancel its click')
+    check(ns.DungeonFrame.EmptyAction:GetScript('OnClick')==emptyClick,'empty-state refresh keeps the registered click handler stable')
+    ns.DungeonFrame.EmptyAction:GetScript('OnClick')(ns.DungeonFrame.EmptyAction)
+    local worldwide,worldwideCount=dungeonCards()
+    check(worldwideCount==21 and worldwide[2437] and worldwide[209] and not ns.Settings.dungeonCurrentMap
+        and not ns.DungeonFrame.MapScope:GetChecked() and not ns.DungeonFrame.EmptyState:IsShown(),
+        'empty-state action disables map filtering and displays the world dungeon list')
+    check(ns.DungeonFrame.PanelSurface.Background.file==panelMaterial,
+        'browsing all dungeons preserves the quiet panel material')
+    check(not ns.DungeonFrame.PanelSurface.EmptyBackground:IsShown(),
+        'browsing all dungeons removes the spiderweb empty-state artwork')
+    ns.DungeonFrame.Search:SetText('ragefire')
+    ns.DungeonFrame.MapScope:SetChecked(true)
+    ns.DungeonFrame.MapScope:GetScript('OnClick')(ns.DungeonFrame.MapScope)
+    check(ns.Settings.dungeonCurrentMap and ns.DungeonFrame.Empty:IsShown() and ns.DungeonFrame.Search:GetText()=='ragefire',
+        'checking current map restores local scope without discarding the search')
+    ns.DungeonFrame.MapScope:SetChecked(false)
+    ns.DungeonFrame.MapScope:GetScript('OnClick')(ns.DungeonFrame.MapScope)
+    browserMapID=1413
+    ns.UpdateDungeonFrame()
+    local globalMatches,globalMatchCount=dungeonCards()
+    check(globalMatchCount==1 and globalMatches[2437] and ns.DungeonFrame.Search:GetText()=='ragefire',
+        'world scope and search survive navigation to another map')
+    ns.DungeonFrame.Search:SetText('no-such-dungeon')
+    check(ns.DungeonFrame.Empty.text==ns.L.noMatchingDungeons and ns.DungeonFrame.EmptyAction.text==ns.L.clearSearch,
+        'an unmatched search has a distinct empty state and clear-search action')
+    check(ns.DungeonFrame.PanelSurface.Background.file==panelMaterial,
+        'no search results do not introduce another illustration')
+    ns.DungeonFrame.EmptyAction:GetScript('OnClick')(ns.DungeonFrame.EmptyAction)
+    local _,clearedCount=dungeonCards()
+    check(clearedCount==21 and ns.DungeonFrame.Search:GetText()=='' and not ns.DungeonFrame.EmptyState:IsShown(),
+        'clear-search action restores the list and removes the empty state')
+    ns.CloseDungeons()
+    ns.OpenDungeons()
+    check(not ns.DungeonFrame.MapScope:GetChecked() and not ns.Settings.dungeonCurrentMap,
+        'the selected world scope survives closing and reopening the panel')
+    ns.DungeonFrame.MapScope:SetChecked(true)
+    ns.DungeonFrame.MapScope:GetScript('OnClick')(ns.DungeonFrame.MapScope)
     browserMapID=947
     ns.UpdateDungeonFrame()
     check(ns.DungeonFrame.point[2]==SpokenPlacesPanel and ns.DungeonFrame.point[3]=='TOPLEFT','dungeon panel replaces story in the same slot')
@@ -319,6 +441,8 @@ return function(ns,check,loadAddon)
     instanceRow:GetScript('OnClick')(instanceRow)
     check(ns.DungeonFrame.dungeonID==2437,'instance browser can select RFC')
     local dungeonFrame=ns.DungeonFrame
+    check(not dungeonFrame.MapScope:IsShown() and not dungeonFrame.Search:IsShown(),
+        'scope and search controls are hidden while showing a dungeon quest checklist')
     check(dungeonFrame.DetailBanner.points.TOPLEFT[4]==2 and dungeonFrame.DetailBanner.points.TOPRIGHT[4]==-2,
         'detail artwork spans the panel inside its frame border')
     check(not ns.DungeonFrame.BackButton and not ns.DungeonFrame.MapButton and not ns.DungeonFrame.EntranceButton,
@@ -475,8 +599,18 @@ return function(ns,check,loadAddon)
     WorldMapFrame.questsStartsEntrances=nil
     ns.Settings.showEntrances=true ns.DrawDungeonEntrances(WorldMapFrame,1454)
     check(portalCount==1,'entrance renders on Orgrimmar map outside general pickup coverage')
+    local oldRect=C_Map.GetMapRectOnMap
+    C_Map.GetMapRectOnMap=function()return 0,1,0,1 end
+    for _,parentMap in ipairs({1414,1415,947}) do
+        ns.DrawDungeonEntrances(WorldMapFrame,parentMap)
+        check(portalCount==1 and ns.lastEntranceCount==0 and WorldMapFrame.questsStartsEntrances.count==0,
+            'continent and world maps clear zone entrances without projecting new pins')
+    end
+    C_Map.GetMapRectOnMap=oldRect
+    ns.DrawDungeonEntrances(WorldMapFrame,1454)
+    check(portalCount==2 and ns.lastEntranceCount==1,'returning to the zone restores its entrance')
     ns.Settings.showEntrances=false ns.DrawDungeonEntrances(WorldMapFrame,1454)
-    check(portalCount==1 and ns.lastEntranceCount==0,'entrance filter suppresses portals')
+    check(portalCount==2 and ns.lastEntranceCount==0,'entrance filter suppresses portals')
     ns.Settings.showEntrances=true WorldMapFrame.AcquirePin=oldDraw
     ns.ShowDungeonMap=oldShowMap
     ns.OpenDungeons(2437)
@@ -512,6 +646,10 @@ return function(ns,check,loadAddon)
     completed[865]=true
     ns.ZoneButton.customClick()
     local zoneFrame=ns.ZoneFrame
+    check(zoneFrame.PanelSurface.Base.color[4]==1
+        and zoneFrame.PanelSurface.Background.file==panelMaterial
+        and zoneFrame.PanelSurface.Art==nil,
+        'zone panel shares the plain parchment material without a duplicated quest-log illustration')
     check(zoneFrame:IsShown() and not ns.DungeonFrame:IsShown() and ns.ZoneButton.checked,
         'windowed Zone Quests opens in the same dock and selects its tab')
     check(zoneFrame.Navigation==nil and zoneFrame.Header:IsShown() and #zoneFrame.Rows>100,
@@ -632,7 +770,7 @@ return function(ns,check,loadAddon)
     ns.CloseZoneQuests()
     local oldCanvas,oldResize=WorldMapFrame.ScrollContainer,WorldMapFrame.OnFrameSizeChanged
     local oldTabResize,oldTabSelect,oldTabDeselect=PanelTemplates_TabResize,PanelTemplates_SelectTab,PanelTemplates_DeselectTab
-    PanelTemplates_TabResize=function(tab,_,width)tab:SetWidth(width)end
+    PanelTemplates_TabResize=function(tab,_,width)tab:SetWidth(width or #tab.text*6+24)end
     PanelTemplates_SelectTab=function(tab)tab.selected=true end
     PanelTemplates_DeselectTab=function(tab)tab.selected=false end
     local oldSpacer=WorldMapFrame.TitleCanvasSpacerFrame
@@ -645,9 +783,17 @@ return function(ns,check,loadAddon)
     local resizeCount=0
     WorldMapFrame.OnFrameSizeChanged=function()resizeCount=resizeCount+1 end
     local oldMaximized=WorldMapFrame.IsMaximized
+    local oldMapParent,oldMapWidth,oldMapHeight,oldMapSetSize=WorldMapFrame.GetParent,WorldMapFrame.GetWidth,WorldMapFrame.GetHeight,WorldMapFrame.SetSize
+    local mapWidth,mapHeight=1920,1080
+    WorldMapFrame.GetParent=function()return UIParent end
+    UIParent.GetSize=function()return UIParent:GetWidth(),UIParent:GetHeight() end
+    WorldMapFrame.GetWidth=function()return mapWidth end
+    WorldMapFrame.GetHeight=function()return mapHeight end
+    WorldMapFrame.SetSize=function(_,width,height)mapWidth,mapHeight=width,height end
     WorldMapFrame.IsMaximized=function()return true end
     UIParent.GetHeight=function()return 1080 end
     ns.SyncDock()
+    local fullscreenResizeCount=resizeCount
     local column=canvas.point[2]
     check(column.parent==WorldMapFrame and not ns.DungeonButton:IsShown()
         and canvas.point[3]=='LEFT' and canvas.point[4]==0, 'fullscreen map ends at its side column without a tab gutter')
@@ -656,23 +802,66 @@ return function(ns,check,loadAddon)
     check(column.Dungeons.template=='PanelTopTabButtonTemplate' and column.Dungeons.selected
         and column.Zones.template=='PanelTopTabButtonTemplate' and not column.Story:IsShown(),
         'standalone fullscreen offers native zone and dungeon tabs')
+    check(column.Dungeons:GetWidth()==#ns.L.dungeons*6+24
+        and column.Zones:GetWidth()==#ns.L.zoneQuests*6+24
+        and column.Dungeons:GetWidth()~=column.Zones:GetWidth()
+        and column.minTabWidth==nil and column.maxTabWidth==nil,
+        'fullscreen tabs hug each label rather than sharing the panel width equally')
+    check(canvas.DockBorder:IsShown() and canvas.DockBorder.layout=='InsetFrameTemplate'
+        and ns.DungeonFrame.DockBorder.template=='QuestLogBorderFrameTemplate'
+        and zoneFrame.DockBorder.template=='QuestLogBorderFrameTemplate',
+        'maximized map retains its plain inset while side panels use the actual Blizzard quest-list border')
     check(ns.DungeonsOpen and ns.DungeonFrame:IsShown() and ns.DungeonFrame.points.TOPLEFT[2]==column,
         'fullscreen opens the dungeon panel inside the column when Spoken is absent')
+    check(not ns.DungeonFrame.TitleContainer:IsShown() and not zoneFrame.TitleContainer:IsShown(),
+        'checklist panels omit titles already supplied by their dock tabs')
+    check(not ns.DungeonFrame.NineSlice:IsShown() and not zoneFrame.NineSlice:IsShown()
+        and ns.DungeonFrame.Search.points.TOPLEFT[5]==-9
+        and zoneFrame.OverviewSearch.points.TOPLEFT[5]==-9
+        and zoneFrame.Header.points.TOPLEFT[5]==-4
+        and ns.DungeonFrame.Bg.points.TOPLEFT[5]==-4,
+        'headerless panels remove the title-bar art and reclaim its content and background space')
+    check(column.Dungeons:GetHeight()==32 and column.Zones.point[5]==-32
+        and column.Zones.point[1]=='BOTTOMLEFT' and column.Zones.point[2]==column
+        and ns.DungeonFrame.points.TOPLEFT[5]==-32,
+        'fullscreen reserves the complete native tab hit area above the panel')
     column.Dungeons:GetScript('OnClick')()
     check(ns.DungeonsOpen and ns.DungeonFrame:IsShown() and not ns.DungeonFrame.CloseButton:IsShown(),'fullscreen dungeon panel stays open')
     ns.CloseDungeons()
     SpokenPlacesPanel=object()
+    SpokenPlacesPanel.TitleContainer=object()
+    SpokenPlacesPanel.TitleContainer:Show()
+    SpokenPlacesPanel.NineSlice=object()
+    SpokenPlacesPanel.NineSlice:Show()
+    local storyHolder=object()
+    storyHolder:SetPoint('TOPLEFT',SpokenPlacesPanel,'TOPLEFT',7,-25)
+    SpokenPlacesPanel.rim=object()
+    SpokenPlacesPanel.rim.parent=storyHolder
     SpokenPlacesPanelToggle=object()
-    SpokenPlaces={Get=function(_,key)return key=='showMapPanel' end,SetMapPanelCollapsed=function()end,RefreshPanel=function()
+    local renderedStory
+    SpokenPlacesPanel.page={Show=function(_,info)renderedStory=info end}
+    SpokenPlaces={Get=function(_,key)return key=='showMapPanel' end,SetMapPanelCollapsed=function()end,
+        GetDisplayedMapID=function()return WorldMapFrame:GetMapID()end,
+        GetMapName=function()return 'Zone story'end,
+        GetLoreWithFallback=function(_,mapID)return {},mapID end,
+        PlaceLine=function()return ''end,IsPending=function()return false end,LoreText=function()return 'Lore'end,
+        RefreshPanel=function()
         if not WorldMapFrame:IsMaximized() then SpokenPlacesPanel:Show() end
     end}
     ns.SyncDock()
     check(SpokenPlacesPanel:IsShown() and SpokenPlacesPanel.points.TOPLEFT[2]==column and WorldMapFrame:IsMaximized(),
-        'Spoken refresh loads fullscreen lore and restores the native maximized flag')
+        'Spoken public page API loads fullscreen lore without altering the native maximized method')
+    check(renderedStory and renderedStory.text=='Lore','fullscreen story is populated through public lore data')
+    check(not SpokenPlacesPanel.TitleContainer:IsShown() and not SpokenPlacesPanel.NineSlice:IsShown()
+        and storyHolder.points.TOPLEFT[5]==-5 and not SpokenPlacesPanel.rim:IsShown()
+        and SpokenPlacesPanel.DockBorder.template==ns.ZoneFrame.DockBorder.template,
+        'Place Story removes its outer header and raises the existing lore page into the space')
     check(SpokenPlacesPanel:GetFrameStrata()=='FULLSCREEN' and column.Story.template=='PanelTopTabButtonTemplate'
         and column.Story.selected and not column.Dungeons.selected,'Spoken stays below menus and selects its native tab')
-    check(column.Story.point[2]==column.Zones and column.Zones.point[2]==column.Dungeons,
-        'fullscreen tabs place zone quests between story and dungeons')
+    check(column.Story.point[1]=='BOTTOMLEFT' and column.Story.point[2]==column
+        and column.Story.point[3]=='TOPLEFT' and column.Story.point[4]==3
+        and column.Zones.point[2]==column.Story and column.Dungeons.point[2]==column.Zones,
+        'fullscreen tabs align left in story, zone quests, dungeon quests order')
     column.Zones:GetScript('OnClick')()
     check(ns.ZoneFrame:IsShown() and not SpokenPlacesPanel:IsShown() and column.Zones.selected
         and ns.ZoneFrame.points.TOPLEFT[2]==column and not ns.ZoneFrame.CloseButton:IsShown(),
@@ -687,10 +876,29 @@ return function(ns,check,loadAddon)
         'switching from Spoken swaps panels inside the same column')
     column.Story:GetScript('OnClick')()
     check(SpokenPlacesPanel:IsShown() and not ns.DungeonFrame:IsShown(),'the fullscreen story button switches back to lore')
-    check(resizeCount==1,'fullscreen switches leave the native zoom bounds in place')
+    check(resizeCount==fullscreenResizeCount,'fullscreen switches leave the native zoom bounds in place')
     WorldMapFrame.IsMaximized=function()return false end
     ns.SyncDock()
-    check(canvas.point[4]==-3 and resizeCount==2,'windowed viewport and native zoom bounds are rebuilt together')
+    check(canvas.point[4]==-3 and resizeCount==fullscreenResizeCount+1,'windowed viewport and native zoom bounds are rebuilt together')
+    check(ns.DungeonFrame.NineSlice:IsShown() and ns.DungeonFrame.TitleContainer:IsShown()
+        and zoneFrame.NineSlice:IsShown() and zoneFrame.TitleContainer:IsShown()
+        and SpokenPlacesPanel.NineSlice:IsShown() and SpokenPlacesPanel.TitleContainer:IsShown()
+        and SpokenPlacesPanel.rim:IsShown() and storyHolder.points.TOPLEFT[5]==-25
+        and not canvas.DockBorder:IsShown() and not ns.DungeonFrame.DockBorder:IsShown()
+        and ns.DungeonFrame.Search.points.TOPLEFT[5]==-33 and zoneFrame.Header.points.TOPLEFT[5]==-28,
+        'minimizing restores all three titled shells, original story rim and windowed content insets')
+    for _,size in ipairs({{1920,1080},{2560,1440},{3440,1440}}) do
+        for _,questWidth in ipairs({0,338}) do
+            for _,art in ipairs({{1002,668},{1600,1000}}) do
+                local width,height=ns.GetMaximizedMapSize(size[1],size[2],67,340,questWidth,art[1],art[2])
+                local viewportWidth,viewportHeight=width-340-questWidth-5,height-67-2
+                check(math.abs(viewportWidth/viewportHeight-art[1]/art[2])<.000001
+                    and width<=size[1]-30+.001 and height<=size[2]+.001,
+                    'maximized artwork fills its viewport proportionally at HD, 1440p and ultrawide with either quest-log state')
+            end
+        end
+    end
+    WorldMapFrame.GetParent,WorldMapFrame.GetWidth,WorldMapFrame.GetHeight,WorldMapFrame.SetSize=oldMapParent,oldMapWidth,oldMapHeight,oldMapSetSize
     WorldMapFrame.ScrollContainer,WorldMapFrame.OnFrameSizeChanged=oldCanvas,oldResize
     PanelTemplates_TabResize,PanelTemplates_SelectTab,PanelTemplates_DeselectTab=oldTabResize,oldTabSelect,oldTabDeselect
     WorldMapFrame.TitleCanvasSpacerFrame=oldSpacer
@@ -699,6 +907,7 @@ return function(ns,check,loadAddon)
     WorldMapFrame.IsMaximized=oldMaximized
     UIParent=oldUIParent SpokenPlacesPanel=oldSpoken SpokenPlaces=oldSpokenAPI SpokenPlacesPanelToggle=oldStoryTab hooksecurefunc=oldHook
     CreateFrame=oldCreateFrame ns.GetPlayerState=oldState WorldMapFrame.SetMapID=oldSetMap C_Map.SetUserWaypoint=oldWaypoint
+    NineSliceUtil=oldNineSliceUtil
     WorldMapFrame.GetAlpha=oldMapAlpha
     WorldMapFrame.GetAttribute,SetUIPanelAttribute,UpdateUIPanelPositions=oldGetAttribute,oldSetPanel,oldUpdatePanels
 end

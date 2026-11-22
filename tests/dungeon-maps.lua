@@ -204,6 +204,48 @@ return function(ns, check, loadAddon, root)
         local unused=art.textures[#files+2]
         check(tileCount>0 and (not unused or not unused.shown),'smaller grids hide previously used textures')
     end
+    ns.ShowDungeonMap(718)
+    check(art.textures[2].file=='Interface\\AddOns\\QuestsStarts\\Maps\\WailingCaverns\\WailingCaverns1_1.blp',
+        'Wailing Caverns uses the archived pre-4.1 Blizzard map rather than the simplified client art')
+    instanceType,instanceID,playerMapID,subzone='party',229,253,'Dragonspire Hall'
+    WorldMapFrame:SetMapID(1427)
+    scripts.OnShow()
+    local function usesSpireFloor(index)
+        return art.textures[2].file==('Interface\\AddOns\\QuestsStarts\\Maps\\BlackrockSpire\\BlackrockSpire'..index..'_1.blp')
+    end
+    check(usesSpireFloor(5),'Dragonspire Hall selects original Blizzard sheet five, not Hall of Blackhand')
+    local spireFloors=WorldMapFrame.NavBar.leaf.listFunc()
+    check(#spireFloors==7 and spireFloors[7].text=='Blackrock Stadium','Blackrock Spire includes its original seventh floor')
+    subzone='The Rookery'
+    frames[1].scripts.OnEvent()
+    check(usesSpireFloor(6),'the Rookery selects the original sheet with Hall of Binding and the Rookery')
+    subzone='Blackrock Stadium'
+    frames[1].scripts.OnEvent()
+    check(usesSpireFloor(7),'the stadium selects the original Upper Spire map even with a shared Lower Spire map ID')
+    for _,zone in ipairs({'The Furnace','Spire Throne','The Molten Span'}) do
+        subzone=zone
+        frames[1].scripts.OnEvent()
+        check(usesSpireFloor(7),'Upper Spire subzones keep the original seventh sheet')
+    end
+    spireFloors[1].func(nil,1)
+    panel.scripts.OnUpdate(panel,0.5)
+    check(usesSpireFloor(4),'manual floor browsing persists while the detected physical floor stays unchanged')
+    subzone="Halycon's Lair"
+    frames[1].scripts.OnEvent()
+    check(usesSpireFloor(5),'returning to Lower Spire selects the matching shared-elevation sheet')
+    check(#frames==3 and art.textures[13].shown,'original Blizzard corrections retain the existing twelve-tile renderer')
+    for _,id in ipairs({718,1583}) do
+        for _,entry in ipairs(ns.DungeonMaps[id].floors) do
+            for tile=1,12 do
+                local relative=(entry.texture..tile..entry.extension):match('Maps\\.*'):gsub('\\','/')
+                local asset=assert(io.open(root..'/addon/QuestsStarts/'..relative,'rb'))
+                check(asset:read(4)=='BLP2','archived Blizzard map has every expected BLP2 tile')
+                asset:close()
+            end
+        end
+    end
+    check(ns.DungeonMaps[209].floors[7].name=="Arugal's Chamber",'Classic Shadowfang floor menu names Arugal')
+    instanceType,instanceID,playerMapID,subzone='none',0,nil,nil
     local worldEntries=ns.ListDungeons(ns.Data,{level=60,completed=function()return false end,active=function()return false end})
     local alcaz
     for _,entry in ipairs(worldEntries) do if entry.id==2994 then alcaz=entry end end

@@ -5,6 +5,8 @@ local function check(value, message) checks=checks+1 assert(value, message) end
 loadAddon('Events.lua')
 loadAddon('Eligibility.lua')
 loadAddon('Requirements.lua')
+loadAddon('BlockedActions.lua')
+loadAddon('Story.lua')
 loadAddon('DungeonPlanner.lua')
 loadAddon('ZonePlanner.lua')
 do
@@ -178,9 +180,12 @@ local cvars={showQuestLevel=false,showQuestDifficultyColor=false,questPOI=true}
 GetCVarBool=function(name)return cvars[name]end
 C_Minimap={IsTrackingHiddenQuests=function()return false end}
 SlashCmdList={}
+QuestsStartsDB={showFlightMasters=true,flightDiscovery={testCharacter={[1]=true}}}
 loadAddon('Core.lua')
 handler(nil,'ADDON_LOADED','QuestsStarts')
 check(type(menuCallback)=='function','menu modification installed')
+handler(nil,'ADDON_ACTION_BLOCKED','QuestsStarts','Test protected action')
+check(ns.Settings.blockedActions.total==1,'runtime event handler captures blocked actions instead of treating them as refresh requests')
 local menuButtons=0
 local filterLabels={}
 local filterSetters={}
@@ -192,16 +197,38 @@ local rootMenu={CreateDivider=function()end,CreateTitle=function(_,label)check(l
         filterSetters[label]=setter
     end,CreateButton=function()menuButtons=menuButtons+1 end}
 menuCallback(nil,rootMenu)
-check(menuCount==6,'native menu includes repeatable and collected-books filters')
+check(menuCount==6,'native menu contains quest and entrance filters without the removed flight master filter')
 check(table.concat(filterLabels,'|')=='Quest Givers|Repeatable Quests|Quest-Starting Items and Books|Dungeon Entrances|Turned-In Library Books|Unverified Quest Pickups',
     'primary map filters come before supplemental filters')
 check(ns.GetPlayerState().showRepeatable==true,'repeatable markers remain visible by default')
+check(ns.Settings.showFlightMasters==nil and ns.Settings.flightDiscovery==nil,
+    'removed flight feature settings and discovery cache are discarded on upgrade')
 filterSetters['Repeatable Quests']()
 check(ns.GetPlayerState().showRepeatable==false,'map filter toggles repeatable markers off')
 filterSetters['Repeatable Quests']()
 check(menuButtons==0,'map filter contains no redundant dungeon navigation item')
 local pending=timers timers={} for _,fn in ipairs(pending)do fn()end
 check(acquired>0,'real generated data produces map pins')
+local shownBefore=WorldMapFrame.IsShown
+WorldMapFrame.IsShown=function()return false end
+ns.Provider:OnHide()
+check(ns.lastState==nil and ns.lastGroups==nil and ns.lastNativeOffers==nil and acquired==0,
+    'closing the map releases marker snapshots and removes pins')
+local hiddenTimers=#timers
+handler(nil,'BAG_UPDATE_DELAYED') handler(nil,'QUEST_LOG_UPDATE') handler(nil,'SKILL_LINES_CHANGED')
+check(#timers==hiddenTimers,'background inventory, quest and skill events schedule no hidden-map refreshes')
+WorldMapFrame.IsShown=shownBefore
+local refreshBefore,hiddenCalls=ns.Refresh,0
+ns.Refresh=function()hiddenCalls=hiddenCalls+1 return refreshBefore()end
+ns.QueueRefresh()
+WorldMapFrame.IsShown=function()return false end
+pending=timers timers={} for _,fn in ipairs(pending)do fn()end
+check(hiddenCalls==0,'a queued refresh is discarded if the map closes before its timer fires')
+ns.Refresh=refreshBefore
+WorldMapFrame.IsShown=shownBefore
+ns.Provider:OnShow()
+pending=timers timers={} for _,fn in ipairs(pending)do fn()end
+check(acquired>0 and ns.lastState~=nil,'reopening the map rebuilds fresh eligibility and markers after skipped background events')
 WorldMapFrame.questsStartsEntrances={}
 ns.IsDungeonMapShown=function()return true end
 ns.Refresh()
@@ -234,12 +261,43 @@ SlashCmdList.QUESTSSTARTS('on')
 SlashCmdList.QUESTSSTARTS('')
 print=oldPrint
 check(table.concat(printed,'\n'):find('pass filters',1,true),'slash status explains candidate eligibility')
+printed={} print=function(message)printed[#printed+1]=message end
+SlashCmdList.QUESTSSTARTS('diagnose')
+print=oldPrint
+local diagnostic=ns.Settings.mapDiagnostic
+check(diagnostic and diagnostic.mapID==1420 and diagnostic.player.classID==5
+    and diagnostic.player.classMask==16 and diagnostic.quests[363].addonMarker,
+    'diagnostic captures the live map, raw player class and actually displayed addon quests')
+local capturedCount=0
+for _ in pairs(diagnostic.quests) do capturedCount=capturedCount+1 end
+check(capturedCount==ns.lastStats.total and diagnostic.player.name==nil,
+    'diagnostic includes hidden as well as visible map candidates without recording character names')
+local oldDiagnosticPins=WorldMapFrame.EnumeratePinsByTemplate
+WorldMapFrame.EnumeratePinsByTemplate=function()
+    local index=0
+    return function()
+        index=index+1
+        if index<=2 then return {questID=index==1 and 363 or 999999,IsShown=function()return true end} end
+    end
+end
+printed={} print=function(message)printed[#printed+1]=message end
+diagnostic=ns.SaveMapDiagnostic()
+print=oldPrint
+check(diagnostic.quests[363].nativeMarker and not diagnostic.quests[363].addonMarker
+    and diagnostic.quests[999999].nativeMarker and diagnostic.quests[999999].quest==nil,
+    'diagnostic distinguishes native offers from addon markers and retains native quests absent from the export')
+WorldMapFrame.EnumeratePinsByTemplate=oldDiagnosticPins
 local mapGetter=WorldMapFrame.GetMapID
 WorldMapFrame.GetMapID=function()return 947 end
 printed={} print=function(message)printed[#printed+1]=message end
 SlashCmdList.QUESTSSTARTS('')
 print=oldPrint
 check(table.concat(printed,'\n'):find('No pickup data for map 947',1,true),'unsupported map status explains coverage')
+printed={} print=function(message)printed[#printed+1]=message end
+SlashCmdList.QUESTSSTARTS('diagnose')
+print=oldPrint
+check(ns.Settings.mapDiagnostic==diagnostic and table.concat(printed,'\n'):find('not captured',1,true),
+    'an unsupported map cannot overwrite a captured diagnostic with stale player or marker state')
 WorldMapFrame.GetMapID=function()return 2548 end
 printed={} print=function(message)printed[#printed+1]=message end
 SlashCmdList.QUESTSSTARTS('')
@@ -337,4 +395,8 @@ assert(loadfile(root..'/tests/forever-dungeons.lua'))()(ns,check)
 assert(loadfile(root..'/tests/endgame-dungeons.lua'))()(ns,check)
 assert(loadfile(root..'/tests/input.lua'))()(ns,check)
 assert(loadfile(root..'/tests/dungeon-maps.lua'))()(ns,check,loadAddon,root)
+assert(loadfile(root..'/tests/class-restrictions.lua'))()(ns,check,loadAddon,root)
+assert(loadfile(root..'/tests/performance-regressions.lua'))()(ns,check)
+assert(loadfile(root..'/tests/blocked-actions.lua'))()(ns,check)
+assert(loadfile(root..'/tests/story.lua'))()(ns,check)
 print('Passed '..checks..' checks (offline; in-game appearance is not validated).')

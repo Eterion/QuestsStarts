@@ -1,0 +1,585 @@
+{
+  "repository": "https://github.com/Trimitor/WDM-patch",
+  "commit": "5e7e9d1957211f40c9636a9f417901d153b40d4d",
+  "artwork": "Blizzard Entertainment",
+  "archiveMaintainer": "Trimitor",
+  "notes": "Archived Blizzard map tiles, copied without changes. Fan-created Sunken Temple floor extensions are excluded.",
+  "files": [
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_1.blp",
+      "sha256": "f248dad7a5beaf97889f7a6f045b4c2211d22c41342319992be4b6c91eda7c4a",
+      "gitBlob": "37428d1a929c5840425575acd35452403f2db5a1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_10.blp",
+      "sha256": "b0ced538c9fe7a5f35530c545047eb2b7d6580bedb973f5b8199198984b7f3e5",
+      "gitBlob": "6471e45f379b9e24a9b4392f9f27c44ca1701490",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_11.blp",
+      "sha256": "8fc4ffa755f835346d1ab3cbb5c9948c623b9e32bc156c1d06014db37535595a",
+      "gitBlob": "866cca4537dc0c03349a86208ef50bddce8256c4",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_12.blp",
+      "sha256": "c67fd0cf38134256edffa90526ee16e3313254292279407198c7c65e46486d3b",
+      "gitBlob": "94380809bb0b20f210f81a437e956ec61b0c2a51",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_2.blp",
+      "sha256": "03394dc07415431ac2685440f7b7132d80f556c8483cb848b8ea44137ceec72c",
+      "gitBlob": "efa5d9f104f4de9298e49d9e68d7a3fb73945a88",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_3.blp",
+      "sha256": "6c085ca06e418978e2dbd362bcf70b9f775d3a036cfb0235edf7d0100dda04ff",
+      "gitBlob": "c2272902e1bf15ff6442c9222b1acbba0681d973",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_4.blp",
+      "sha256": "5af4d0930a9f75f17750000ecb1de7974665670b970e6a2458a7484faa43bc5c",
+      "gitBlob": "b47fcb16de27897a12b6e90e8eea213ccc7c4179",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_5.blp",
+      "sha256": "09afa41e69dd7e844c5b3b7c8a77b43102bc59d17b5c034db1324f49b5dfabe2",
+      "gitBlob": "445fc46139fb9aa91f8580788f2527f7803827bf",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_6.blp",
+      "sha256": "59f8759e82f1cc87675bb6e57b7af36940f1a8d13da51ee9ae14bb8bdc118862",
+      "gitBlob": "073a832130b4dca8ddffd6d8a1c1ac6328a0a315",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_7.blp",
+      "sha256": "f0e665a84e106c2a3855c1d6988114f2aa7a4351c7298e3fdab11a83b87bcc70",
+      "gitBlob": "0b52f6a21ff5faf764d54c3b68f03aa214408f05",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_8.blp",
+      "sha256": "d0b3f73d58d75019527ee6c762af2feb2327d8620bc5ed4d60fdd6757b67c1a5",
+      "gitBlob": "bc01517696d323ee2ad4907e70470bb483b01610",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire1_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire1_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_1.blp",
+      "sha256": "f248dad7a5beaf97889f7a6f045b4c2211d22c41342319992be4b6c91eda7c4a",
+      "gitBlob": "37428d1a929c5840425575acd35452403f2db5a1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_10.blp",
+      "sha256": "1acc802720c9d98c5397c011e61eb84011926ea589dfc6df8f64c8ae593f5dbd",
+      "gitBlob": "fc69cfaa507951c5336b3a647808f6a1f20bc542",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_11.blp",
+      "sha256": "a4fff63ab7e4a1ba7dc99418d54dc1066c9498e6583d65a4bac8ee1bcd849f60",
+      "gitBlob": "12e3abb48a2d157a87ea25766ae208aec1bbbb64",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_12.blp",
+      "sha256": "93d5c5c18a6770ed2536cf7f76c9ea2e8b23c42b4ff7e5cc34587087c707881e",
+      "gitBlob": "737fcd0673032c0f25834f2cba79c0e3b3471edd",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_2.blp",
+      "sha256": "03394dc07415431ac2685440f7b7132d80f556c8483cb848b8ea44137ceec72c",
+      "gitBlob": "efa5d9f104f4de9298e49d9e68d7a3fb73945a88",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_3.blp",
+      "sha256": "d8f4465d0315ee3bca5bdfd99bfd34428a46fabd15a12532109bfe8ebfee4ee3",
+      "gitBlob": "f1336973b4036d0ef0503681db5b4a06c294bd8f",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_4.blp",
+      "sha256": "2758acfdc3fa598ac1f8504a7ce201b306dc880d42f3a0e65a2cbb2fc51f3fba",
+      "gitBlob": "5df1000356a906e0f11e77eaf235092dc6e78cdc",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_5.blp",
+      "sha256": "09afa41e69dd7e844c5b3b7c8a77b43102bc59d17b5c034db1324f49b5dfabe2",
+      "gitBlob": "445fc46139fb9aa91f8580788f2527f7803827bf",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_6.blp",
+      "sha256": "a9c392ae2b86a13b34704db1b721dad7592014683ce62bf79eab7f6870d46c81",
+      "gitBlob": "64d18c0956a66032b1f93d81a0851dea2cb10127",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_7.blp",
+      "sha256": "33c8229ac52bde6525984f9a78559cb4be9d962d34d712f7eb9cbfd451d6c751",
+      "gitBlob": "0bd88ab77e8cc9fb3179c23f00e11631663fb4a7",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_8.blp",
+      "sha256": "3e6eae1e3579339b28ccaecfe2fbd1a32e938ee9411142d4a50963e8337ef198",
+      "gitBlob": "aa5fb4f3f61c2326a56b687580d8dfe9776b2c90",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire2_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire2_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_1.blp",
+      "sha256": "f248dad7a5beaf97889f7a6f045b4c2211d22c41342319992be4b6c91eda7c4a",
+      "gitBlob": "37428d1a929c5840425575acd35452403f2db5a1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_10.blp",
+      "sha256": "b0ced538c9fe7a5f35530c545047eb2b7d6580bedb973f5b8199198984b7f3e5",
+      "gitBlob": "6471e45f379b9e24a9b4392f9f27c44ca1701490",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_11.blp",
+      "sha256": "460c55e194a44b2c5275f7419f19fc7fab68bd12a71ba0e90b843a45a332cee3",
+      "gitBlob": "3ff2bef6c0e7d64d6c3d06a62dc8c1957d3d72dd",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_12.blp",
+      "sha256": "93d5c5c18a6770ed2536cf7f76c9ea2e8b23c42b4ff7e5cc34587087c707881e",
+      "gitBlob": "737fcd0673032c0f25834f2cba79c0e3b3471edd",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_2.blp",
+      "sha256": "03394dc07415431ac2685440f7b7132d80f556c8483cb848b8ea44137ceec72c",
+      "gitBlob": "efa5d9f104f4de9298e49d9e68d7a3fb73945a88",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_3.blp",
+      "sha256": "2257b02d0853edbea0e7383c88e0f4116574271f1691907d55d2ad73b2542bbf",
+      "gitBlob": "c676d5c8418593845d067bd069fffc1ead95a58c",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_4.blp",
+      "sha256": "2758acfdc3fa598ac1f8504a7ce201b306dc880d42f3a0e65a2cbb2fc51f3fba",
+      "gitBlob": "5df1000356a906e0f11e77eaf235092dc6e78cdc",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_5.blp",
+      "sha256": "09afa41e69dd7e844c5b3b7c8a77b43102bc59d17b5c034db1324f49b5dfabe2",
+      "gitBlob": "445fc46139fb9aa91f8580788f2527f7803827bf",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_6.blp",
+      "sha256": "aaecc971978cea08e5280b1888ab61287f225e5b8952674d792ebbcef618cff1",
+      "gitBlob": "01a60cfd0c13f180a5580ca9a9c08006422ee957",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_7.blp",
+      "sha256": "af27db826fb9053c3756c9985457f7e4c75c52875240ba0de55d755d066aa317",
+      "gitBlob": "8da265e9c3a60eeb8e0a5bec219521c9f441bdbb",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_8.blp",
+      "sha256": "3e6eae1e3579339b28ccaecfe2fbd1a32e938ee9411142d4a50963e8337ef198",
+      "gitBlob": "aa5fb4f3f61c2326a56b687580d8dfe9776b2c90",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire3_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire3_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_1.blp",
+      "sha256": "d18e4454d46c66af7fd2b0106dd5dd737bc27994685b6b543383e2a2109574eb",
+      "gitBlob": "0db63eec0b0a984d772a9b40b4e63cd69b73654f",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_10.blp",
+      "sha256": "7fc8913160bdfe1fa75ac07103bbb95b0d837757012c294330880736502a619b",
+      "gitBlob": "c8bedce8062dd48c35b6426abab8a8e332604ffa",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_11.blp",
+      "sha256": "07b66ac816175b21bec0adf569b491af017b4eb03f8f154b52af33a2f40ecf85",
+      "gitBlob": "1b405350fbfeb507bf837a6337a41a4f7bea52ce",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_12.blp",
+      "sha256": "acab0c92cd1d80b53918af2bebdbf247813f7b6e01b0759c9fd94313cc410697",
+      "gitBlob": "01da2740e0a55117cb52b1e1c8cee31a71901e6a",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_2.blp",
+      "sha256": "81e1a963483d1d09d2d6b4132b7368f5a6ea525940fa2995b98202a99ebe85d1",
+      "gitBlob": "1b7fd94fa72828052d7c237809d4531d3512befe",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_3.blp",
+      "sha256": "d877e631807474b52b3744ec86b3ead5a552ec81e3d9cff7c2ed87b90b8aedc2",
+      "gitBlob": "6d7a110923f4e42e42eb170f9278fb0f95e12757",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_4.blp",
+      "sha256": "68c32b25b95302951bf9416dc2720ddea4f491625e4a676120671c94fd9fc7bb",
+      "gitBlob": "cf4ae6b97ab40b26346bdb5cf45a6428e131bde3",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_5.blp",
+      "sha256": "2f093359ab79d409c049490b2333e24b3ab9c6cf5da87ce1dd672f2fc5959c52",
+      "gitBlob": "72ad6ca9ea4fc1a4097a3abd64624634c523d631",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_6.blp",
+      "sha256": "925e5e1da256045c2a29d7517067dc8669e14dacb8be0f6a5a5ef28f3e953233",
+      "gitBlob": "80ec331d74b6bfeaf86a05f5b059e7fa08217277",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_7.blp",
+      "sha256": "0550d2d4f2a4287db9567e99a6e9dce349635b6540dc94cc45a3f356c8aef5a2",
+      "gitBlob": "7c5f973e3557af91f0bcac0ade958b995cdcc110",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_8.blp",
+      "sha256": "64804bd79793381fa32643ed900b9917af9f6df09d180d82425ca392f96a2e66",
+      "gitBlob": "ce31b56072d9d86964babeadc8303640db9a05b7",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire4_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire4_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_1.blp",
+      "sha256": "3584bee0d274cfbc587840cc89abc148cda9da7e7f31ce33b1a25923be8b7162",
+      "gitBlob": "f08b164c3b280af7140ed62ffa73b318f2927895",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_10.blp",
+      "sha256": "fa64d9296fdb133c129666677183f1efa5a9abe6b3f0ae837014133d6c970b3f",
+      "gitBlob": "cadb1845b285e445d820d08c13dc4dc73386a621",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_11.blp",
+      "sha256": "de339e8488c7677733e31272d1c41be2d636aa17c618014ceca6cff1ea0346b4",
+      "gitBlob": "7d4354a4e3c4fa0caae141142cd60e8956e16bc1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_12.blp",
+      "sha256": "93d5c5c18a6770ed2536cf7f76c9ea2e8b23c42b4ff7e5cc34587087c707881e",
+      "gitBlob": "737fcd0673032c0f25834f2cba79c0e3b3471edd",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_2.blp",
+      "sha256": "c2bc4c1816d4a6a9d63adba32dd2413c3adbbddec145122159ecefdfcac7a1fc",
+      "gitBlob": "87223cd5d46338a5591cdbcbda90cc9afd36f66e",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_3.blp",
+      "sha256": "92c096aa02ba94d0d663b9e3756b3fe4d22bc0fe981838df4af6263c38f11a45",
+      "gitBlob": "82a461b1b942f5f794196406c6cd3a3f0029bcfa",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_4.blp",
+      "sha256": "2758acfdc3fa598ac1f8504a7ce201b306dc880d42f3a0e65a2cbb2fc51f3fba",
+      "gitBlob": "5df1000356a906e0f11e77eaf235092dc6e78cdc",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_5.blp",
+      "sha256": "6a02654adf3f63ac6ea10177968d471ce1c14280594d8cdd9238a3862353d1b8",
+      "gitBlob": "7641c5280d954b795489b5e144ce499ce24a4585",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_6.blp",
+      "sha256": "d1ae6edb4566a83e5a0e2f824bbc3f8df78909db2702bac313f17cdd41e23958",
+      "gitBlob": "826dda7a58322c6bfa7bc76f178057b3fc24f3dc",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_7.blp",
+      "sha256": "f91331e5b6ccc3e3b47673b7886fcbc69349314e4914cc55a64101dbb427aa31",
+      "gitBlob": "bf92303cf09ffe6378ef31fc6e26bf415fc8ff53",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_8.blp",
+      "sha256": "3e6eae1e3579339b28ccaecfe2fbd1a32e938ee9411142d4a50963e8337ef198",
+      "gitBlob": "aa5fb4f3f61c2326a56b687580d8dfe9776b2c90",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire5_9.blp",
+      "sha256": "69e9dc1502fe678311c427dacf346261ed1cf6bacdd24b9e149e44c3aa9fcb0c",
+      "gitBlob": "3e667ff8cc2c6b4204d8ba15fe45d3b03a134f3d",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire5_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_1.blp",
+      "sha256": "7be1dcb881043793a670e3efaa258f40b7d951ab3903cbb637a96be8135e8a6e",
+      "gitBlob": "e1599c7e046736d66fba8ffc5e32884aa1a4843f",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_10.blp",
+      "sha256": "5ed668013d04878613eb80c1ead1090b6b06786196202a3851003953994a2506",
+      "gitBlob": "19bd78a37bdc1bbc0c844d903950ea4db9554819",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_11.blp",
+      "sha256": "554e57d3f0132a117035220b411fd5c29148ff3905bc50250b9f82837148f10d",
+      "gitBlob": "2cfa7b0d497f84fca7c93685131b11eb6f84eaf4",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_12.blp",
+      "sha256": "8314237b9dcf82964e49593d2aaef1126133c69eba8971d241e4c196db46949f",
+      "gitBlob": "8ee37d951dffc633a824caea7ad7e092927eaca8",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_2.blp",
+      "sha256": "178f33ca625de9b53196148cdfb0b30c5a21f1b8a73a6ba4a793b9f90f5042ff",
+      "gitBlob": "7ffedc4b6d6ec1b7b9275297768f742f7ae1b96f",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_3.blp",
+      "sha256": "79b9413b51a1a48830d9cccbcdd26faecb654d698bb06bf0c9b13ffa131779e8",
+      "gitBlob": "7f0ffbb96e0ed4b7676d01ac7c569e57e3c081f1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_4.blp",
+      "sha256": "6c0941b4edb19a83bbc01e432c080a9173811b2167dc699df32978a03526e38d",
+      "gitBlob": "7acc6f66dce0564fe1e415f8561c8f78ad56ade2",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_5.blp",
+      "sha256": "09afa41e69dd7e844c5b3b7c8a77b43102bc59d17b5c034db1324f49b5dfabe2",
+      "gitBlob": "445fc46139fb9aa91f8580788f2527f7803827bf",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_6.blp",
+      "sha256": "39c35f4727dd646f3992caccf6e08471caed7b2a8b3a47d4b98c254c2d74b833",
+      "gitBlob": "6651f028281fee6e0858bd328bbd627c37342ca2",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_7.blp",
+      "sha256": "6efede9545053fc9273aa2d76b4fca2644e0cd6037d5c49450379ef29b2a7622",
+      "gitBlob": "f4f0ca79bbb59a5a76329fa2322802069b336eb4",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_8.blp",
+      "sha256": "5183ed037adf8d54fa70f454d0a52a2184aeab19ea21d45352dbc47f63973146",
+      "gitBlob": "28e1b012cf4966292b7bccac1016a63827b78905",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire6_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire6_9.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_1.blp",
+      "sha256": "f248dad7a5beaf97889f7a6f045b4c2211d22c41342319992be4b6c91eda7c4a",
+      "gitBlob": "37428d1a929c5840425575acd35452403f2db5a1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_1.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_10.blp",
+      "sha256": "b0ced538c9fe7a5f35530c545047eb2b7d6580bedb973f5b8199198984b7f3e5",
+      "gitBlob": "6471e45f379b9e24a9b4392f9f27c44ca1701490",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_10.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_11.blp",
+      "sha256": "b2be6a408fee4489e5af49044c7290c793b7a66e26df4168a9f630b59578496b",
+      "gitBlob": "b3f2a669119e7745f824702c27b6857c20f65907",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_11.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_12.blp",
+      "sha256": "c9e3213a96d5e3f0db2db5560c03e3cef26df13e560b91c6355129092462ade5",
+      "gitBlob": "4a351932afa17113faf78e40acb5e11ae3a565f2",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_12.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_2.blp",
+      "sha256": "1920e32b3cfbf98de81cbf03635587d3cdcaf282c8f1823d33e0069f04953961",
+      "gitBlob": "55c3fa259e23ac6fadf3cc29de81a62a3c60faa1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_2.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_3.blp",
+      "sha256": "424c3af330a055780204a4fd4816988d0d70fc5539baa973b85a82731aa37781",
+      "gitBlob": "cb3aa3a1c353030a586c953e40c3ba97cda4a8f6",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_3.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_4.blp",
+      "sha256": "1b4eaf89f6992af56e545e62cbbb7911e95925cb04539b344fe3941e3a419025",
+      "gitBlob": "724df8ee43c1c376d35bf809525cc567ce44f1ee",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_4.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_5.blp",
+      "sha256": "09afa41e69dd7e844c5b3b7c8a77b43102bc59d17b5c034db1324f49b5dfabe2",
+      "gitBlob": "445fc46139fb9aa91f8580788f2527f7803827bf",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_5.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_6.blp",
+      "sha256": "cc0bae7f50d386bc4d75d83b7739f6787180e880fd51a66a7d3e43aaf6415d02",
+      "gitBlob": "cdbeaf2b5af52dd4c4154e00f454bac6c5da135f",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_6.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_7.blp",
+      "sha256": "2cc2329a1821ef6a32edfd2bcee4aacd02731c5b18b94485e02d9f6b025bd212",
+      "gitBlob": "092bae302f293b43dd6a8ad22902e54628ace72c",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_7.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_8.blp",
+      "sha256": "8a1f618c827dc5eb57b627c58bcb6c06758cc3b0d5c4480508f5242009647cc7",
+      "gitBlob": "5a7ecfc979e6b8a28be4591c89e1332f86c0b57c",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_8.blp"
+    },
+    {
+      "file": "BlackrockSpire/BlackrockSpire7_9.blp",
+      "sha256": "c18ae3f203643af140b7e941fc50fae9efcfe7122725c5a44290b4a6b21bda07",
+      "gitBlob": "6a7751df7f4afc0d0d4717a34679f90a0d3fb934",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/BlackrockSpire/BlackrockSpire7_9.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_1.blp",
+      "sha256": "db9690190afbaf1002eea43fd049e6f1bb343e34d44b22d372e5a1605f750efd",
+      "gitBlob": "a2d162cf5531b9e892ec31a41dfb080998227f01",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_1.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_10.blp",
+      "sha256": "4bc64cdfece575660c2540f3be997074c58f689e37873bd80cb297f8827afd52",
+      "gitBlob": "23711e861c4159e07abe648ff2e11b1c701f8b6c",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_10.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_11.blp",
+      "sha256": "f537bfc17b8fc006a979a907c9f5055cbbb133038b5c47b1f8b14faa60009f66",
+      "gitBlob": "5cb2f71d7f735a6502e7e5431c7887b3b1d886d0",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_11.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_12.blp",
+      "sha256": "11b35fa21bce3ae15924b05207de233ac27e19905b216a4a71c3e388d9e05fa8",
+      "gitBlob": "cfffe1dc57fed60bf7f563d776989e68865ff7c5",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_12.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_2.blp",
+      "sha256": "fb2b556c44f6173d01e274e7e8543c5014046ee4bf99549f4ad1510f45801244",
+      "gitBlob": "8cc7872246da6a083eef7190b76978351cefa44a",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_2.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_3.blp",
+      "sha256": "eaef466bc86e277768ed4dc26041081944ff24551d387ed1730200e2f7022ad2",
+      "gitBlob": "cc35507b38c29325a34f2d19fcbbd0c2cd1c7afb",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_3.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_4.blp",
+      "sha256": "407ffac2d59c317af358b5a2e76424cb2cd135ca0df972246941ca1f1f2e242a",
+      "gitBlob": "8410272ecb24640748e8f991818494faf53e41c1",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_4.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_5.blp",
+      "sha256": "cfab268dde4c88a68b82568dd14a3be8ae3846f7e4bd411ac7e02f0346564c09",
+      "gitBlob": "07014ed2067836e28a8b99df710784ca6de8f99d",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_5.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_6.blp",
+      "sha256": "1cb180e74b68ca4c0afc30ee2fc213296661be3da606f53b9724ef17148633d1",
+      "gitBlob": "e178d0d6341a08c580c45352f17b7b78f3cb7740",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_6.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_7.blp",
+      "sha256": "fd5ad7dfe679b93f1fdc15650c07ccbe2043be6a73ff1353dcfcc40f14079950",
+      "gitBlob": "4b48b2176052e7c1fdabe745428dbff383ad107c",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_7.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_8.blp",
+      "sha256": "e7e25ec481ac624760e49b1a875367e1e90f1e6482ae3acd651f8613ca959da9",
+      "gitBlob": "70c564f0523f9385d1f25098c7ede9307ae26809",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_8.blp"
+    },
+    {
+      "file": "WailingCaverns/WailingCaverns1_9.blp",
+      "sha256": "20b50f3bce91f47dd757d58abe3a15714ca39cb1fdc05a63338c994819226833",
+      "gitBlob": "098200e56ea69d205e3d944c5da884c388ac4948",
+      "source": "https://raw.githubusercontent.com/Trimitor/WDM-patch/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap/WailingCaverns/WailingCaverns1_9.blp"
+    }
+  ]
+}

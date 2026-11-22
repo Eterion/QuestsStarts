@@ -248,10 +248,12 @@ function ns.UpdateZoneFrame()
         frame.Empty:SetPoint('TOPLEFT', frame.OverviewSearch, 'BOTTOMLEFT', -7, -8)
         local count = updateOverview(frame, continentByID[mapID], width)
         frame.Empty:SetText(count == 0 and 'No matching maps.' or '')
+        ns.SetChecklistEmptyBackground(frame,count==0)
         return
     end
     if not showChecklist then
-        frame.Empty:SetPoint('TOPLEFT', frame, 'TOPLEFT', 17, -36)
+        ns.SetChecklistEmptyBackground(frame,true)
+        frame.Empty:SetPoint('TOPLEFT', frame, 'TOPLEFT', 17, frame.DockMaximized and -12 or -36)
         if not isHorde then frame.Empty:SetText('Zone quest data is available for Horde characters.')
         else frame.Empty:SetText('No zone checklist is available for this map.') end
         return
@@ -390,6 +392,7 @@ function ns.UpdateZoneFrame()
     for i = headerIndex+1, #frame.Headers do frame.Headers[i]:Hide() end
     for i = chainIndex+1, #frame.ChainHeaders do frame.ChainHeaders[i]:Hide() end
     frame.Content:SetHeight(math.max(1, y))
+    ns.SetChecklistEmptyBackground(frame,rowIndex==0)
 end
 
 function ns.OpenZoneQuests()
@@ -399,6 +402,7 @@ function ns.OpenZoneQuests()
         frame:Hide()
         frame:SetClampedToScreen(true)
         frame:SetTitle(ns.L.zoneQuests)
+        ns.StyleChecklistPanel(frame)
         frame.Rows, frame.Headers, frame.ChainHeaders, frame.Cards = {}, {}, {}, {}
         frame.CloseButton = CreateFrame('Button', nil, frame, 'UIPanelCloseButtonDefaultAnchors')
         frame.CloseButton:SetScript('OnClick', ns.CloseZoneQuests)
@@ -447,8 +451,8 @@ function ns.OpenZoneQuests()
             frame.Overview:SetVerticalScroll(0)
             ns.UpdateZoneFrame()
         end)
-        frame.OverviewSearch:SetPoint('TOPLEFT', frame, 'TOPLEFT', 24, -33)
-        frame.OverviewSearch:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -34, -33)
+        frame.OverviewSearch:SetPoint('TOPLEFT', frame, 'TOPLEFT', 24, -9)
+        frame.OverviewSearch:SetPoint('TOPRIGHT', frame, 'TOPRIGHT', -34, -9)
         frame.Overview = CreateFrame('ScrollFrame', 'QuestsStartsZoneOverview', frame, 'QuestsStartsScrollFrameTemplate')
         frame.Overview:SetPoint('TOPLEFT', frame.OverviewSearch, 'BOTTOMLEFT', -8, -6)
         frame.Overview:SetPoint('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', -28, 12)

@@ -29,6 +29,11 @@ Open the World Map inside a supported dungeon to see its layout.
 Dungeon cards and entrance pins preview the map from outside. On multi-floor
 maps, the dungeon breadcrumb opens a floor menu. The map follows detectable
 floor changes and preserves a manual selection until the next change.
+Wailing Caverns uses archived pre-4.1 Blizzard parchment artwork with the
+Winding Chasm. Blackrock Spire uses Blizzard's original seven-sheet set,
+including Upper Spire details and the Stadium floor that were missing from
+the later Lower Spire art. See [Classic map resources](docs/classic-map-resources.md)
+for provenance and remaining limitations.
 The Ruins of Lordaeron surface uses custom parchment artwork based on the client
 minimap, with seven shaded encounter areas, skull markers, and an entrance
 whirlpool. Encounter points
@@ -60,9 +65,13 @@ cities. It uses quests categorized to each zone, quests with a known local
 pickup, and known pickups inside dungeons entered from the zone. Quests can
 appear in multiple zones when the source associates them with each. Quest chains
 group local steps and show known outside steps in tooltips. Zoom out on the map
-to see continent or zone cards in the panel. Dungeon Quests follows the map and
-lists instances with entrances in the current zone or continent. The world map
-shows all tracked dungeons. The zone panel shows a source-data message
+to see continent or zone cards in the panel. Dungeon Quests has a **Current map**
+checkbox beside its search field. When checked, it lists instances with entrances
+in the selected zone or continent; uncheck it to search all tracked dungeons in
+the world. This preference is saved. Empty dungeon maps offer **Browse all dungeons**.
+Both quest panels use dark parchment over an opaque base, with the native
+spiderweb artwork reserved for empty states.
+The zone panel shows a source-data message
 when it has no quests for the selected map or character.
 The pinned source has checklist records on 48 maps before character filtering.
 Riverglades has one categorized quest, while Deadwind Pass and Mount Hyjal have

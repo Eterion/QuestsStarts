@@ -1,6 +1,11 @@
 -- Reviewed local corrections; do not edit the pinned QuestieDB checkout.
 -- Evidence and limitations: docs/data-corrections.md (rechecked 2026-11-08).
-return {
+local overrides={
+    [78270]={ -- Goblin Lockpicks: sparse Forever trace omitted the original rogue gates.
+        -- Pinned Sod/sodBaseQuests.lua and Sod/sodQuestFixes.lua agree on the class;
+        -- the latter records this as a subquest of The Horn of Xelthos.
+        fields={requiredClasses=8,zoneOrSort=-162,parentQuest=78261},
+    },
     [79095]={ -- Both source points describe the same shelf in Brill.
         duplicateObjectSpawns={[405879]={[85]={[59.4]={[52.3]=true}}}},
     },
@@ -34,3 +39,16 @@ return {
         pickups={{kind='Npc',id=14325,name='Captain Kromcrush',insideDungeon=2557}},
     },
 }
+local root=assert(debug.getinfo(1,'S').source:sub(2):match('^(.*[\\/])'))
+for _,review in pairs(dofile(root..'class-gate-reviews.lua')) do
+    for _,id in ipairs(review.ids) do
+        local entry=overrides[id] or {}
+        entry.fields=entry.fields or {}
+        for field,value in pairs(review.fields) do
+            assert(entry.fields[field]==nil or entry.fields[field]==value,'Conflicting class review override: '..id)
+            entry.fields[field]=value
+        end
+        overrides[id]=entry
+    end
+end
+return overrides

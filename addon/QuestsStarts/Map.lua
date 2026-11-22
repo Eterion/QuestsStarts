@@ -210,6 +210,10 @@ function ns.ProviderMixin:OnShow()
 end
 function ns.ProviderMixin:OnHide()
     self:RemoveAllData()
+    -- A hidden map needs neither marker groups nor the player snapshot closures.
+    ns.lastState,ns.lastGroups,ns.lastNativeOffers,ns.lastMapID=nil,nil,nil,nil
+    ns.lastStats=nil
+    ns.lastPinCount,ns.lastEntranceCount=0,0
 end
 function ns.ProviderMixin:OnCanvasScaleChanged() ns.QueueRefresh() end
 function ns.ProviderMixin:OnCanvasSizeChanged() ns.QueueRefresh() end

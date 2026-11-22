@@ -2,6 +2,12 @@
 
 Originally reviewed 2026-11-07 against QuestieDB `5fba5d86641d1a64a787884e28e15ee16b115060`; rechecked and retained on 2026-11-08 against the updated pin `aa1d7e7294596cf50a6fd0946dfae0d969cb9623`. These factual corrections live in `tools/forever-overrides.lua` and are applied offline to every class export. Upstream tracked files are not locally edited. Generated data should not be edited manually. Player reports are evidence, not an independent live-client test by this project.
 
+The class eligibility follow-up is recorded separately in
+[class-gate-decisions.md](class-gate-decisions.md): the 49 inherited class-mask
+differences have explicit handling, with three Earthmother race corrections,
+shared library/cooking exceptions, and three quarantined Dragonslayer entries.
+Their fields are applied by the same local override pipeline.
+
 ## Hall of Thanes
 
 The pinned `foreverQuestFixes.lua` marks An Ancient Grudge (96395) Alliance-only with the comment “not sure if horde can get this quest”. It also has no dungeon sort or starter. Player reports on [An Ancient Grudge](https://www.wowhead.com/forever/quest=96395/an-ancient-grudge) and [Ghostly Attendant, NPC 265002](https://www.wowhead.com/forever/npc=265002/ghostly-attendant) describe both-faction access and a giver inside Hall of Thanes. [ForeverChanges' observed Hall quest list](https://foreverchanges.pro/dungeons/hall-of-thanes) also lists this quest for both factions, from level 10. The override sets all-race access, minimum level 10, dungeon membership, and that inside starter. It supplies no coordinates.

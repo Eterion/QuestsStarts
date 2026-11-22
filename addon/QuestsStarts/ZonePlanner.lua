@@ -51,8 +51,8 @@ function ns.BuildZoneChecklist(quests, ids, dungeons, player, showCompleted)
     for id in pairs(ids) do
         local quest = quests[id]
         local race, class = quest.requiredRaces, quest.requiredClasses
-        if (not race or not player.raceMask or ns.HasBit(race, player.raceMask))
-            and (not class or not player.classMask or ns.HasBit(class, player.classMask)) then
+        if (not race or race==0 or not player.raceMask or ns.HasBit(race, player.raceMask))
+            and (not class or class==0 or not player.classMask or ns.HasBit(class, player.classMask)) then
             local active, complete = player.active(id), player.completed(id)
             local row = { id = id, name = quest.name or '', level = quest.questLevel or 0,
                 active = active, complete = complete and not active, dungeon = dungeons[id],

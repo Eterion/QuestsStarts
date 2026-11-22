@@ -16,6 +16,8 @@ $candidateRoot = Join-Path $projectRoot 'work/exports'
 New-Item -ItemType Directory -Path $candidateRoot -Force | Out-Null
 Push-Location $sourceRoot
 try {
+    & $lua (Join-Path $PSScriptRoot 'audit-inherited-classes.lua') $projectRoot source
+    if ($LASTEXITCODE -ne 0) { throw 'Inherited class source capture failed.' }
     foreach ($entry in $classes.GetEnumerator()) {
         $candidate = Join-Path $candidateRoot ($entry.Key + '.lua')
         & $lua (Join-Path $PSScriptRoot 'export.lua') $candidate $actualRevision $entry.Key $entry.Value
@@ -24,6 +26,11 @@ try {
 } finally { Pop-Location }
 & $lua (Join-Path $PSScriptRoot 'merge-classes.lua') (Join-Path $dataRoot 'Tirisfal.lua') $actualRevision $candidateRoot
 if ($LASTEXITCODE -ne 0) { throw 'Class data compilation or reconstruction verification failed.' }
+Push-Location $sourceRoot
+try {
+    & $lua (Join-Path $PSScriptRoot 'audit-inherited-classes.lua') $projectRoot audit
+    if ($LASTEXITCODE -ne 0) { throw 'Inherited class metadata audit failed.' }
+} finally { Pop-Location }
 & $lua (Join-Path $PSScriptRoot 'coverage-report.lua') (Join-Path $dataRoot 'Tirisfal.lua') (Join-Path $projectRoot 'docs/coverage.md')
 if ($LASTEXITCODE -ne 0) { throw 'Coverage report generation failed.' }
 & $lua (Join-Path $PSScriptRoot 'dungeon-report.lua') (Join-Path $dataRoot 'Tirisfal.lua') (Join-Path $projectRoot 'docs/dungeon-coverage.md')

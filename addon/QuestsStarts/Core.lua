@@ -58,6 +58,7 @@ function ns.Refresh()
     ns.lastEntranceCount = 0
     ns.lastStats = nil
     ns.lastReason = nil
+    ns.lastState,ns.lastGroups,ns.lastNativeOffers,ns.lastMapID=nil,nil,nil,nil
     ns.Filters = readFilters()
     ns.SyncDock()
     if ns.UpdateDungeonFrame then ns.UpdateDungeonFrame() end
@@ -84,6 +85,7 @@ function ns.Refresh()
     local state = playerState()
     ns.lastState = state
     local groups,stats = ns.BuildGroups(ns.Data, mapID, state, ns.Settings.includeUnknown, native)
+    ns.lastGroups,ns.lastNativeOffers,ns.lastMapID=groups,native,mapID
     ns.lastStats = stats
     local canvas = WorldMapFrame:GetCanvas()
     local scale = WorldMapFrame:GetCanvasScale()
@@ -100,11 +102,60 @@ local function refreshSafely()
     return ok,err
 end
 
+function ns.SaveMapDiagnostic()
+    local ok=refreshSafely()
+    if not ok or not ns.lastState or not ns.lastGroups then
+        print('Quest diagnostic not captured: '..(ns.lastError or ns.lastReason or 'open the affected zone map first.'))
+        return
+    end
+    local state=ns.lastState
+    local className,classFile,classID=UnitClass('player')
+    local _,raceFile,raceID=UnitRace('player')
+    local metadata=C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+    local diagnostic={format=1,build=developmentBuild or (metadata and metadata(addonName,'Version')),
+        revision=ns.Data.revision,mapID=ns.lastMapID,
+        player={className=className,classFile=classFile,classID=classID,classMask=state.classMask,
+            raceFile=raceFile,raceID=raceID,raceMask=state.raceMask,level=state.level},
+        filters={includeUnknown=ns.Settings.includeUnknown,questGivers=state.showQuestGivers,
+            itemStarts=state.showItemStarts,showLowLevel=state.showLowLevel},quests={}}
+    for _,starter in ipairs(ns.Data.maps[ns.lastMapID] or {}) do
+        for _,id in ipairs(starter.quests) do
+            local row=diagnostic.quests[id]
+            if not row then
+                local available,reason=ns.IsAvailable(id,ns.Data.quests,state)
+                row={quest=ns.Data.quests[id],decision=available==nil and 'unknown' or available and 'available' or 'hidden',
+                    reason=reason,addonMarker=false,nativeMarker=ns.lastNativeOffers[id]==true,sources={}}
+                diagnostic.quests[id]=row
+            end
+            row.sources[#row.sources+1]={kind=starter.kind,id=starter.id,name=starter.name}
+        end
+    end
+    for _,group in ipairs(ns.lastGroups) do
+        for _,entry in ipairs(group.quests) do
+            local row=diagnostic.quests[entry.id]
+            row.addonMarker=true
+            row.markerUncertain=entry.uncertain
+            row.markerReason=entry.reason
+            row.bookLocation=entry.bookLocation
+        end
+    end
+    -- Native offers can include quests absent from our export.
+    for id in pairs(ns.lastNativeOffers) do
+        if not diagnostic.quests[id] then
+            diagnostic.quests[id]={quest=ns.Data.quests[id],addonMarker=false,nativeMarker=true,sources={}}
+        end
+    end
+    ns.Settings.mapDiagnostic=diagnostic
+    print('Captured every quest decision on map '..diagnostic.mapID..' for '..(classFile or 'unknown class')..'. Run /reload to save it for inspection.')
+    return diagnostic
+end
+
 function ns.QueueRefresh()
-    if not initialized or queued then return end
+    if not initialized or queued or not WorldMapFrame:IsShown() then return end
     queued = true
     C_Timer.After(0, function()
         queued = false
+        if not WorldMapFrame:IsShown() then return end
         local ok,err=refreshSafely()
         if not ok then geterrorhandler()(err) end
     end)
@@ -114,12 +165,17 @@ local function initialize()
     if initialized then return end
     if type(QuestsStartsDB) ~= 'table' then QuestsStartsDB = {} end
     ns.Settings = QuestsStartsDB
+    local metadata=C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
+    ns.StartBlockedActionLog(developmentBuild or (metadata and metadata(addonName,'Version')) or 'development')
+    -- Retire the removed flight-master filter and its character discovery cache.
+    ns.Settings.showFlightMasters,ns.Settings.flightDiscovery=nil,nil
     if type(ns.Settings.enabled) ~= 'boolean' then ns.Settings.enabled = true end
     if type(ns.Settings.showRepeatable) ~= 'boolean' then ns.Settings.showRepeatable = true end
     if type(ns.Settings.showItems) ~= 'boolean' then ns.Settings.showItems = ns.Settings.enabled end
     if type(ns.Settings.showTurnedInBooks) ~= 'boolean' then ns.Settings.showTurnedInBooks = false end
     if type(ns.Settings.includeUnknown) ~= 'boolean' then ns.Settings.includeUnknown = false end
     if type(ns.Settings.showEntrances) ~= 'boolean' then ns.Settings.showEntrances = true end
+    if type(ns.Settings.dungeonCurrentMap) ~= 'boolean' then ns.Settings.dungeonCurrentMap = true end
     initialized = true
     ns.Provider = CreateFromMixins(ns.ProviderMixin)
     WorldMapFrame:AddDataProvider(ns.Provider)
@@ -132,15 +188,22 @@ local function initialize()
 end
 
 events:SetScript('OnEvent', function(_, event, ...)
-    if event == 'ADDON_LOADED' then
+    if event=='ADDON_ACTION_BLOCKED' or event=='ADDON_ACTION_FORBIDDEN' then
+        ns.RecordBlockedAction(event,...)
+    elseif event == 'ADDON_LOADED' then
         if ... == addonName then initialize() else ns.QueueDock() end
     elseif event=='GLOBAL_MOUSE_DOWN' or event=='GLOBAL_MOUSE_UP' then
         ns.HandleEntranceMouse(event,...)
-    else ns.QueueRefresh() end
+    else
+        if event=='PLAYER_REGEN_ENABLED' then ns.QueueDock() end
+        ns.QueueRefresh()
+    end
 end)
 events:RegisterEvent('ADDON_LOADED')
 events:RegisterEvent('GLOBAL_MOUSE_DOWN')
 events:RegisterEvent('GLOBAL_MOUSE_UP')
+events:RegisterEvent('ADDON_ACTION_BLOCKED')
+events:RegisterEvent('ADDON_ACTION_FORBIDDEN')
 for _, event in ipairs({'PLAYER_ENTERING_WORLD','QUEST_LOG_UPDATE','QUEST_ACCEPTED','QUEST_REMOVED','QUEST_TURNED_IN','PLAYER_LEVEL_UP','QUESTLINE_UPDATE','CVAR_UPDATE','MINIMAP_UPDATE_TRACKING','CALENDAR_UPDATE_EVENT_LIST','SKILL_LINES_CHANGED','UPDATE_FACTION','SPELLS_CHANGED','BAG_UPDATE_DELAYED','BANKFRAME_OPENED','BANKFRAME_CLOSED','PLAYERBANKSLOTS_CHANGED','PLAYER_REGEN_ENABLED'}) do
     events:RegisterEvent(event)
 end
@@ -153,6 +216,10 @@ SlashCmdList.QUESTSSTARTS = function(message)
         ns.QueueRefresh()
     elseif message=='dungeon' or message=='dungeons' then
         ns.OpenDungeons()
+    elseif message=='diagnose' then
+        ns.SaveMapDiagnostic()
+    elseif message=='blocked' then
+        ns.ShowBlockedActionLog()
     else
         refreshSafely()
         local metadata=C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata

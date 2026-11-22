@@ -120,6 +120,67 @@ function ns.SetChecklistBannerArt(art,fileID,width,height)
     return loaded
 end
 
+function ns.StyleChecklistPanel(frame)
+    ns.LayoutDockPanel(frame,WorldMapFrame.IsMaximized and WorldMapFrame:IsMaximized())
+    local surface=frame.Bg or CreateFrame('Frame',nil,frame)
+    if not frame.Bg then
+        surface:SetPoint('TOPLEFT',frame,'TOPLEFT',4,-4)
+        surface:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-4,4)
+        surface:SetFrameLevel(frame:GetFrameLevel())
+    end
+    for _,key in ipairs({'BottomLeft','BottomRight','BottomEdge','TopSection'}) do
+        if surface[key] then surface[key]:Hide() end
+    end
+    surface:SetAlpha(1)
+    frame.PanelSurface=surface
+    surface.Base=surface:CreateTexture(nil,'BACKGROUND',nil,-8)
+    surface.Base:SetAllPoints()
+    surface.Base:SetColorTexture(.06,.05,.04,1)
+    surface.Background=surface:CreateTexture(nil,'BACKGROUND',nil,-7)
+    surface.Background:SetAllPoints()
+    -- Plain native parchment supplies grain and a quiet edge vignette without
+    -- duplicating the quest log's illustration or adding unrelated scenery.
+    surface.Background:SetTexture('Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal-Desaturated')
+    surface.Background:SetVertexColor(.30,.28,.24)
+    surface.Background:SetAlpha(1)
+    surface.EmptyBackground=surface:CreateTexture(nil,'BACKGROUND',nil,-6)
+    surface.EmptyBackground:SetAllPoints(surface)
+    surface.EmptyBackground:SetAtlas('QuestLog-empty-quest-background')
+    surface.EmptyBackground:Hide()
+    frame:HookScript('OnSizeChanged',function()
+        ns.LayoutChecklistPanelBackground(frame)
+        ns.SetChecklistEmptyBackground(frame)
+    end)
+    ns.LayoutChecklistPanelBackground(frame)
+end
+
+function ns.LayoutChecklistPanelBackground(frame)
+    local width,height=math.max(1,frame:GetWidth()-8),math.max(1,frame:GetHeight()-(frame.DockMaximized and 8 or 18))
+    -- The source parchment is 512x256. Crop it uniformly to the panel's
+    -- proportions instead of stretching its horizontal grain into a tall strip.
+    local u,v=.96,.92
+    local sourceRatio=(512*u)/(256*v)
+    local panelRatio=width/height
+    if panelRatio<sourceRatio then u=u*panelRatio/sourceRatio
+    else v=v*sourceRatio/panelRatio end
+    frame.PanelSurface.Background:SetTexCoord((1-u)/2,(1+u)/2,(1-v)/2,(1+v)/2)
+end
+
+function ns.SetChecklistEmptyBackground(frame,empty)
+    if empty~=nil then frame.PanelEmpty=not not empty end
+    local texture=frame.PanelSurface.EmptyBackground
+    texture:SetShown(frame.PanelEmpty==true)
+    if not frame.PanelEmpty then return end
+    local info=C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo('QuestLog-empty-quest-background')
+    local width,height=math.max(1,frame:GetWidth()-8),math.max(1,frame:GetHeight()-(frame.DockMaximized and 8 or 18))
+    local sourceRatio=(info and info.width or 307)/(info and info.height or 510)
+    local panelRatio=width/height
+    local u,v=math.min(1,panelRatio/sourceRatio),math.min(1,sourceRatio/panelRatio)
+    -- Fill the entire surface at a uniform scale. Crop from the top-right so
+    -- the corner decoration stays anchored when the maximized panel is taller.
+    texture:SetTexCoord(1-u,1,0,v)
+end
+
 local function createTitleFade(parent,height)
     local fade=parent:CreateTexture(nil,'BORDER')
     fade:SetPoint('TOPLEFT',parent,'TOPLEFT')
@@ -132,8 +193,8 @@ end
 
 function ns.CreateChecklistBanner(parent,height)
     local banner=CreateFrame('Frame',nil,parent)
-    banner:SetPoint('TOPLEFT',parent,'TOPLEFT',2,-28)
-    banner:SetPoint('TOPRIGHT',parent,'TOPRIGHT',-2,-28)
+    banner:SetPoint('TOPLEFT',parent,'TOPLEFT',4,-4)
+    banner:SetPoint('TOPRIGHT',parent,'TOPRIGHT',-4,-4)
     banner:SetHeight(height)
     banner.Art=banner:CreateTexture(nil,'BACKGROUND')
     banner.Art:SetAllPoints(banner)
@@ -256,6 +317,15 @@ function ns.PositionDungeonFrame()
     return true
 end
 
+function ns.SetDungeonCurrentMap(enabled)
+    ns.Settings.dungeonCurrentMap=enabled==true
+    local frame=ns.DungeonFrame
+    if not frame then return end
+    frame.MapScope:SetChecked(ns.Settings.dungeonCurrentMap)
+    frame.Scroll:SetVerticalScroll(0)
+    ns.UpdateDungeonFrame()
+end
+
 function ns.UpdateDungeonFrame()
     local frame=ns.DungeonFrame
     if not frame or not frame:IsShown() then return end
@@ -264,8 +334,9 @@ function ns.UpdateDungeonFrame()
     local mapID=WorldMapFrame:GetMapID()
     local displayedDungeon=ns.GetDisplayedDungeonMapID()
     if frame.mapID~=mapID or frame.displayedDungeon~=displayedDungeon then
+        local changedView=frame.displayedDungeon~=displayedDungeon
         frame.mapID,frame.displayedDungeon,frame.dungeonID=mapID,displayedDungeon,displayedDungeon
-        ns.ResetChecklistSearch(frame.Search)
+        if changedView or ns.Settings.dungeonCurrentMap~=false then ns.ResetChecklistSearch(frame.Search) end
         frame.Scroll:SetVerticalScroll(0)
     end
     local dungeon=frame.dungeonID and data.dungeons[frame.dungeonID]
@@ -383,6 +454,8 @@ function ns.UpdateDungeonFrame()
     end
     frame.Scroll:ClearAllPoints()
     frame.Search:SetShown(not dungeon)
+    frame.MapScope:SetShown(not dungeon and not mapOnly)
+    frame.MapScope:SetChecked(ns.Settings.dungeonCurrentMap~=false)
     if dungeon then
         frame.Scroll:SetPoint('TOPLEFT',frame.DetailBanner,'BOTTOMLEFT',14,-8)
     else
@@ -390,19 +463,40 @@ function ns.UpdateDungeonFrame()
     end
     frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
     frame.DetailBanner:SetShown(dungeon~=nil)
-    frame.Empty:Hide()
+    local emptyShown=false
+    local function empty(title,description,action,callback)
+        frame.Empty:SetText(title)
+        frame.EmptyDescription:SetText(description)
+        frame.EmptyAction:SetShown(action~=nil)
+        frame.EmptyAction.action=callback
+        if action then
+            frame.EmptyAction:SetText(action)
+        end
+        emptyShown=true
+    end
     if mapOnly and mapOnly.levelLow then
         frame.Search:Hide()
-        frame.Empty:SetText('No quest data for this dungeon.')
-        frame.Empty:Show()
+        empty(ns.L.noDungeonQuests,ns.L.noDungeonQuestsHint)
     elseif not dungeon then
-        local entries=ns.ListDungeons(data,player,mapID)
+        local entries=ns.ListDungeons(data,player,ns.Settings.dungeonCurrentMap~=false and mapID or nil)
         local query=ns.ChecklistSearchQuery(frame.Search)
         for _,entry in ipairs(entries) do
             if ns.ChecklistSearchMatches(entry.name,query) then acquire(entry,'instance') end
         end
-        frame.Empty:SetText(#entries==0 and 'No dungeons on this map.' or 'No matching dungeons.')
-        frame.Empty:SetShown(visible==0)
+        if visible==0 then
+            if #entries==0 and ns.Settings.dungeonCurrentMap~=false then
+                empty(ns.L.noDungeonsHere,ns.L.noDungeonsHereHint,ns.L.browseAllDungeons,function()
+                    ns.ResetChecklistSearch(frame.Search)
+                    ns.SetDungeonCurrentMap(false)
+                end)
+            else
+                empty(ns.L.noMatchingDungeons,ns.L.noMatchingDungeonsHint,ns.L.clearSearch,function()
+                    ns.ResetChecklistSearch(frame.Search)
+                    frame.Scroll:SetVerticalScroll(0)
+                    ns.UpdateDungeonFrame()
+                end)
+            end
+        end
     else
         local plan=ns.BuildDungeonPlan(data,frame.dungeonID,player)
         local sections=ns.OrganizeDungeonPlan(data,plan)
@@ -434,7 +528,12 @@ function ns.UpdateDungeonFrame()
     end
     for index=visible+1,#frame.Rows do frame.Rows[index]:Hide() end
     for index=headingCount+1,#frame.Headings do frame.Headings[index]:Hide() end
-    frame.Content:SetHeight(math.max(y,1))
+    -- Hiding a pressed button's ancestor cancels the click. Keep an unchanged
+    -- empty state alive through focus changes and quest/map refreshes.
+    frame.Empty:SetShown(emptyShown)
+    frame.EmptyState:SetShown(emptyShown)
+    frame.Content:SetHeight(math.max(y,emptyShown and 288 or 1))
+    ns.SetChecklistEmptyBackground(frame,emptyShown)
 end
 
 function ns.OpenDungeons(dungeonID)
@@ -445,6 +544,7 @@ function ns.OpenDungeons(dungeonID)
         frame:Hide()
         frame:SetClampedToScreen(true) frame:SetFrameStrata('HIGH')
         frame:SetTitle(ns.L.dungeons)
+        ns.StyleChecklistPanel(frame)
         frame.Rows={} frame.Headings={}
         frame.CloseButton=CreateFrame('Button',nil,frame,'UIPanelCloseButtonDefaultAnchors')
         frame.CloseButton:SetScript('OnClick',ns.CloseDungeons)
@@ -452,30 +552,65 @@ function ns.OpenDungeons(dungeonID)
             frame.Scroll:SetVerticalScroll(0)
             ns.UpdateDungeonFrame()
         end)
-        frame.Search:SetPoint('TOPLEFT',frame,'TOPLEFT',24,-33)
-        frame.Search:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-34,-33)
+        frame.Search:SetPoint('TOPLEFT',frame,'TOPLEFT',24,-9)
+        frame.MapScope=CreateFrame('CheckButton',nil,frame,'UICheckButtonTemplate')
+        frame.MapScope:SetSize(24,24)
+        frame.MapScope:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-128,-8)
+        frame.MapScope.Text=frame.MapScope.Text or frame.MapScope:CreateFontString(nil,'OVERLAY','GameFontHighlightSmall')
+        frame.MapScope.Text:SetPoint('LEFT',frame.MapScope,'RIGHT',0,0)
+        frame.MapScope.Text:SetText(ns.L.currentMap)
+        frame.MapScope:SetHitRectInsets(0,-78,0,0)
+        frame.MapScope:SetScript('OnClick',function(self)
+            ns.SetDungeonCurrentMap(self:GetChecked()==true)
+        end)
+        frame.MapScope:SetScript('OnEnter',function(self)
+            GameTooltip:SetOwner(self,'ANCHOR_RIGHT')
+            GameTooltip:SetText(ns.L.currentMap)
+            GameTooltip:AddLine('Checked: dungeons on the selected map. Unchecked: all dungeons in the world.',1,1,1,true)
+            GameTooltip:Show()
+        end)
+        frame.MapScope:SetScript('OnLeave',function()GameTooltip:Hide()end)
+        frame.Search:SetPoint('RIGHT',frame.MapScope,'LEFT',-8,0)
         local banner=ns.CreateChecklistBanner(frame,detailHeight)
         frame.DetailBanner=banner
         frame.CompletedCount=ns.CreateQuestBadge(banner,checkIcon)
         frame.CompletedCount:SetPoint('BOTTOMLEFT',banner,'BOTTOMLEFT',14,7)
         frame.InLogCount=ns.CreateQuestBadge(banner,questLogIcon)
         frame.InLogCount:SetPoint('LEFT',frame.CompletedCount,'RIGHT',6,0)
-        frame.Empty=frame:CreateFontString(nil,'OVERLAY','GameFontHighlight')
-        frame.Empty:SetPoint('TOPLEFT',frame.Search,'BOTTOMLEFT',-7,-8)
-        frame.Empty:SetPoint('RIGHT',frame,'RIGHT',-17,0)
-        frame.Empty:SetJustifyH('LEFT')
         frame.Scroll=CreateFrame('ScrollFrame','QuestsStartsDungeonScroll',frame,'QuestsStartsScrollFrameTemplate')
         frame.Scroll:SetPoint('TOPLEFT',frame,'TOPLEFT',16,-128)
         frame.Scroll:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',-28,12)
         frame.Content=CreateFrame('Frame',nil,frame.Scroll)
         frame.Content:SetSize(294,1) frame.Scroll:SetScrollChild(frame.Content)
+        frame.EmptyState=CreateFrame('Frame',nil,frame.Content)
+        frame.EmptyState:SetPoint('TOPLEFT',frame.Content,'TOPLEFT',8,-38)
+        frame.EmptyState:SetPoint('TOPRIGHT',frame.Content,'TOPRIGHT',-8,-38)
+        frame.EmptyState:SetHeight(250)
+        frame.Empty=frame.EmptyState:CreateFontString(nil,'OVERLAY','GameFontNormalLarge')
+        frame.Empty:SetPoint('TOPLEFT',frame.EmptyState,'TOPLEFT',0,-68)
+        frame.Empty:SetPoint('TOPRIGHT',frame.EmptyState,'TOPRIGHT',0,-68)
+        frame.Empty:SetJustifyH('CENTER')
+        frame.Empty:SetWordWrap(true)
+        frame.EmptyDescription=frame.EmptyState:CreateFontString(nil,'OVERLAY','GameFontHighlight')
+        frame.EmptyDescription:SetPoint('TOPLEFT',frame.Empty,'BOTTOMLEFT',0,-12)
+        frame.EmptyDescription:SetPoint('TOPRIGHT',frame.Empty,'BOTTOMRIGHT',0,-12)
+        frame.EmptyDescription:SetJustifyH('CENTER')
+        frame.EmptyDescription:SetTextColor(.75,.71,.63)
+        frame.EmptyDescription:SetWordWrap(true)
+        frame.EmptyAction=CreateFrame('Button',nil,frame.EmptyState,'UIPanelButtonTemplate')
+        frame.EmptyAction:SetSize(176,24)
+        frame.EmptyAction:SetPoint('TOP',frame.EmptyDescription,'BOTTOM',0,-20)
+        frame.EmptyAction:RegisterForClicks('LeftButtonUp')
+        frame.EmptyAction:SetScript('OnClick',function(self)
+            if self.action then self.action() end
+        end)
         frame:SetScript('OnShow',ns.UpdateDungeonFrame)
         ns.DungeonFrame=frame
     end
     if ns.CloseZoneQuests then ns.CloseZoneQuests() end
     ns.ShowDungeonMap(dungeonID)
     local mapID=WorldMapFrame:GetMapID()
-    if ns.DungeonFrame.mapID~=mapID then ns.ResetChecklistSearch(ns.DungeonFrame.Search) end
+    if ns.DungeonFrame.mapID~=mapID and ns.Settings.dungeonCurrentMap~=false then ns.ResetChecklistSearch(ns.DungeonFrame.Search) end
     ns.DungeonFrame.mapID=mapID
     ns.DungeonFrame.displayedDungeon=ns.GetDisplayedDungeonMapID()
     ns.DungeonFrame.dungeonID=ns.DungeonFrame.displayedDungeon or (dungeonID and ns.Data.dungeons[dungeonID] and dungeonID)

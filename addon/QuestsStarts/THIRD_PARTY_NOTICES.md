@@ -67,6 +67,18 @@ The unchanged Ragefire Chasm, Razorfen Kraul, and Scholomance map tiles are from
 `Media/Dungeons/Ragefire_Old`, `RazorfenKraul_Old`, and `Scholomance_Old` in YanHuo's
 [ClassicDungeonMaps Forever release 9567661](https://www.curseforge.com/wow/addons/classicdungeonmaps/files/9567661).
 Native map tile paths and floor subzone associations were checked against the same release.
+The bundled Wailing Caverns and Blackrock Spire BLP tiles are archived Blizzard
+parchment artwork obtained from Trimitor's WDM-patch archive, commit
+`5e7e9d1957211f40c9636a9f417901d153b40d4d`:
+https://github.com/Trimitor/WDM-patch/tree/5e7e9d1957211f40c9636a9f417901d153b40d4d/Stable/enUS/Interface/WorldMap
+
+Wailing Caverns is the pre-4.1 layout. Blackrock Spire is the original seven-sheet
+set, before the later Upper/Lower Spire artwork split. All 96 BLP files are copied
+unchanged from the archive. `Maps/ClassicBlizzardSources.json` records their
+individual source URLs, upstream Git blob IDs and SHA-256 hashes. The archive is
+maintained by Trimitor; the artwork belongs to Blizzard Entertainment. No WDM
+runtime or client patch is included or installed. Its fan-created additional
+Sunken Temple floors are not included.
 The remaining artwork is referenced from the installed client.
 World of Warcraft artwork belongs to Blizzard Entertainment.
 ClassicDungeonMaps is distributed under the MIT License.

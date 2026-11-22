@@ -2,20 +2,68 @@ local _,ns=...
 local watched=setmetatable({},{__mode='k'})
 local watchedStoryAnchors=setmetatable({},{__mode='k'})
 local queued,syncing,hookedSpoken=false,false,nil
-local baseExtraWidth,appliedExtraWidth
-local movedPanels=false
-local panelSlots={'left','center','doublewide','right'}
 local fadingFrames={'DungeonButton','DungeonFrame','ZoneButton','ZoneFrame'}
 local fullscreenStory
 local canvasAnchors
 local fullscreenColumn
 -- Blizzard's dropdowns use FULLSCREEN_DIALOG even when opened from the map.
 local fullscreenStrata='FULLSCREEN'
-local fullscreenTabBand=27
+-- PanelTopTabButtonTemplate has a 32px hit area, even though its art is shorter.
+local fullscreenTabBand=32
+
+local function setMaximizedBorder(frame,shown,isMap)
+    if shown and not frame.DockBorder then
+        local border=CreateFrame('Frame',nil,frame,isMap and 'NineSlicePanelTemplate' or 'QuestLogBorderFrameTemplate')
+        border:ClearAllPoints()
+        border:SetAllPoints(frame)
+        -- Keep the map quiet; the side panels use the actual quest-list frame,
+        -- including its native questlog-frame-filigree decoration.
+        if isMap then NineSliceUtil.ApplyLayoutByName(border,'InsetFrameTemplate') end
+        frame.DockBorder=border
+    end
+    if frame.DockBorder then
+        frame.DockBorder:SetFrameStrata(fullscreenStrata)
+        frame.DockBorder:SetFrameLevel(frame:GetFrameLevel()+30)
+        frame.DockBorder:SetShown(shown)
+    end
+end
+
+function ns.LayoutDockPanel(frame,maximized)
+    frame.DockMaximized=maximized
+    if frame.TitleContainer then frame.TitleContainer:SetShown(not maximized) end
+    if frame.NineSlice then frame.NineSlice:SetShown(not maximized) end
+    setMaximizedBorder(frame,maximized)
+    if frame.Bg then
+        frame.Bg:ClearAllPoints()
+        frame.Bg:SetPoint('TOPLEFT',frame,'TOPLEFT',maximized and 4 or 6,maximized and -4 or -20)
+        frame.Bg:SetPoint('BOTTOMRIGHT',frame,'BOTTOMRIGHT',maximized and -4 or -2,maximized and 4 or 2)
+    end
+    if frame.rim then
+        -- Restore Spoken's own page frame when the icon tabs return.
+        frame.rim:SetShown(not maximized)
+        local holder=frame.rim:GetParent()
+        if holder then holder:SetPoint('TOPLEFT',frame,'TOPLEFT',7,maximized and -5 or -25) end
+    end
+    local offset=maximized and 0 or 24
+    local banner=frame.DetailBanner or frame.Header
+    if banner then
+        banner:SetPoint('TOPLEFT',frame,'TOPLEFT',maximized and 4 or 2,-4-offset)
+        banner:SetPoint('TOPRIGHT',frame,'TOPRIGHT',maximized and -4 or -2,-4-offset)
+    end
+    local search=frame.Search or frame.OverviewSearch
+    if search then search:SetPoint('TOPLEFT',frame,'TOPLEFT',24,-9-offset) end
+    if frame.OverviewSearch then frame.OverviewSearch:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-34,-9-offset) end
+    if frame.MapScope then frame.MapScope:SetPoint('TOPRIGHT',frame,'TOPRIGHT',maximized and -128 or -104,-8-offset) end
+    if frame.PanelSurface then
+        ns.LayoutChecklistPanelBackground(frame)
+        ns.SetChecklistEmptyBackground(frame)
+    end
+end
 
 local function layoutFullscreenCanvas(map,column)
     local canvas=map.ScrollContainer
     if not canvas then return end
+    setMaximizedBorder(canvas,column~=nil,true)
     if column then
         if not canvasAnchors then
             canvasAnchors={}
@@ -61,140 +109,57 @@ local function layoutFullscreenColumn(map,panelWidth,hasStory)
                 SpokenPlaces:SetMapPanelCollapsed(false)
             end
         end)
-        column.Zones:SetPoint('BOTTOMRIGHT',column.Dungeons,'BOTTOMLEFT',-8,0)
-        column.Story:SetPoint('BOTTOMRIGHT',column.Zones,'BOTTOMLEFT',-8,0)
-        column.Dungeons:SetPoint('BOTTOMRIGHT',column,'TOPRIGHT',-10,-fullscreenTabBand)
+        for _,button in ipairs({column.Story,column.Zones,column.Dungeons}) do
+            button:SetHeight(fullscreenTabBand)
+        end
         fullscreenColumn=column
     end
     local column=fullscreenColumn
     local width=panelWidth*UIParent:GetEffectiveScale()/map:GetEffectiveScale()
     column:SetSize(width,math.max(1,map:GetHeight()-map.TitleCanvasSpacerFrame:GetHeight()-2))
-    local tabs=hasStory and 3 or 2
-    local tabWidth=math.max(1,(width-15-8*(tabs-1))/tabs)
-    column.minTabWidth=tabWidth
-    column.maxTabWidth=tabWidth
+    -- Native tabs size to their labels, starting at the panel's left edge.
+    column.Story:ClearAllPoints()
+    column.Zones:ClearAllPoints()
+    column.Dungeons:ClearAllPoints()
+    column.Story:SetPoint('BOTTOMLEFT',column,'TOPLEFT',3,-fullscreenTabBand)
+    if hasStory then column.Zones:SetPoint('BOTTOMLEFT',column.Story,'BOTTOMRIGHT',8,0)
+    else column.Zones:SetPoint('BOTTOMLEFT',column,'TOPLEFT',3,-fullscreenTabBand) end
+    column.Dungeons:SetPoint('BOTTOMLEFT',column.Zones,'BOTTOMRIGHT',8,0)
+    column.minTabWidth=nil
+    column.maxTabWidth=nil
     column.Story:SetShown(hasStory)
     column:Show()
-    PanelTemplates_TabResize(column.Dungeons,0,tabWidth)
-    PanelTemplates_TabResize(column.Zones,0,tabWidth)
-    if hasStory then PanelTemplates_TabResize(column.Story,0,tabWidth) end
+    PanelTemplates_TabResize(column.Dungeons,0)
+    PanelTemplates_TabResize(column.Zones,0)
+    if hasStory then PanelTemplates_TabResize(column.Story,0) end
     return column
 end
 
-local function fillMaximizedMap(map)
-    if not map:IsMaximized() then return end
-    local width,height=map:GetParent():GetSize()
-    if map:GetWidth()~=width or map:GetHeight()~=height then
+local function fullscreenPanelWidth(map,story)
+    local scale=map:GetEffectiveScale()/UIParent:GetEffectiveScale()
+    local storyWidth=story and SpokenPlaces and SpokenPlaces.Get and SpokenPlaces:Get('panelWidth')
+    return math.min(type(storyWidth)=='number' and storyWidth*scale or 340,UIParent:GetWidth()*.4)
+end
+
+function ns.GetMaximizedMapSize(parentWidth,parentHeight,spacer,dockWidth,questWidth,artWidth,artHeight)
+    local sideWidth=dockWidth+questWidth+5
+    local canvasWidth=math.min(math.max(1,parentWidth-30-sideWidth),math.max(1,parentHeight-spacer-2)*artWidth/artHeight)
+    return canvasWidth+sideWidth,canvasWidth*artHeight/artWidth+spacer+2
+end
+
+local function fillMaximizedMap(map,story)
+    if (InCombatLockdown and InCombatLockdown()) or not map:IsMaximized() then return end
+    local parentWidth,parentHeight=map:GetParent():GetSize()
+    local layers=C_Map.GetMapArtLayers and C_Map.GetMapArtLayers(map:GetMapID())
+    local layer=layers and layers[1]
+    local artWidth,artHeight=layer and layer.layerWidth or 1002,layer and layer.layerHeight or 668
+    local scale=UIParent:GetEffectiveScale()/map:GetEffectiveScale()
+    local dockWidth=fullscreenPanelWidth(map,story)*scale
+    local questWidth=map.QuestLog and map.QuestLog:IsShown() and map.questLogWidth or 0
+    local width,height=ns.GetMaximizedMapSize(parentWidth,parentHeight,map.TitleCanvasSpacerFrame:GetHeight(),dockWidth,questWidth,artWidth,artHeight)
+    if math.abs(map:GetWidth()-width)>.01 or math.abs(map:GetHeight()-height)>.01 then
         map:SetSize(width,height)
-        SetUIPanelAttribute(map,'bottomClampOverride',0)
-        UpdateUIPanelPositions(map)
         map:OnFrameSizeChanged()
-    end
-end
-
-local function refreshFullscreenStory()
-    local map=WorldMapFrame
-    -- Spoken's synchronous refresh rejects maximized maps before loading lore.
-    local isMaximized=map.IsMaximized
-    map.IsMaximized=function()return false end
-    local ok,err=pcall(SpokenPlaces.RefreshPanel,SpokenPlaces)
-    map.IsMaximized=isMaximized
-    if not ok then geterrorhandler()(err) end
-end
-
-local function placeManagedPanels(active,right)
-    if not active then
-        if movedPanels then
-            movedPanels=false
-            UpdateUIPanelPositions(WorldMapFrame)
-        end
-        return
-    end
-    if not GetUIPanel then return end
-    local panelScale=active:GetEffectiveScale()
-    local panelLeft,panelTop,panelBottom=active:GetLeft(),active:GetTop(),active:GetBottom()
-    if not (panelLeft and panelTop and panelBottom) then return end
-    panelLeft,panelTop,panelBottom=panelLeft*panelScale,panelTop*panelScale,panelBottom*panelScale
-    local uiScale=UIParent:GetEffectiveScale()
-    local screenRight=(UIParent:GetRight() or UIParent:GetWidth())*uiScale
-    local target=right+8*uiScale
-    local windows,seen={},{}
-    for _,slot in ipairs(panelSlots) do
-        local window=GetUIPanel(slot)
-        if window and window~=WorldMapFrame and not seen[window] and window:IsShown() and window:GetLeft() then
-            seen[window]=true
-            windows[#windows+1]=window
-        end
-    end
-    table.sort(windows,function(a,b)
-        return a:GetLeft()*a:GetEffectiveScale()<b:GetLeft()*b:GetEffectiveScale()
-    end)
-    for _,window in ipairs(windows) do
-        local scale=window:GetEffectiveScale()
-        local left,top,bottom=window:GetLeft(),window:GetTop(),window:GetBottom()
-        local width=window:GetWidth()*scale
-        if left and top and bottom and top*scale>panelBottom and bottom*scale<panelTop and left*scale+width>panelLeft then
-            if left*scale<target-1 then
-                if target+width<=screenRight then
-                    window:ClearAllPoints()
-                    window:SetPoint('TOPLEFT',UIParent,'BOTTOMLEFT',
-                        target/scale-(UIParent:GetLeft() or 0)*uiScale/scale,
-                        top-(UIParent:GetBottom() or 0)*uiScale/scale)
-                    movedPanels=true
-                    target=target+width+8*uiScale
-                elseif HideUIPanel then
-                    HideUIPanel(window)
-                    -- Blizzard may reflow the remaining windows after a close.
-                    ns.QueueDock()
-                    return
-                end
-            else
-                target=math.max(target,left*scale+width+8*uiScale)
-            end
-        end
-    end
-end
-local function updatePanelWidth(active,storyTab,zoneTab,tab)
-    if not (SetUIPanelAttribute and UpdateUIPanelPositions) then return end
-    if InCombatLockdown and InCombatLockdown() then return end
-    local map=WorldMapFrame
-    -- Forever keeps GetUIPanelAttribute local to Blizzard's panel manager.
-    local current=map:GetAttribute('UIPanelLayout-extraWidth')
-    if current~=appliedExtraWidth then baseExtraWidth=current end
-    local extra=0
-    if map:IsShown() and not (map.IsMaximized and map:IsMaximized()) and map:GetRight() then
-        local scale=map:GetEffectiveScale()
-        local mapRight=map:GetRight()*scale
-        local function include(frame)
-            if frame and frame:IsShown() and frame:GetRight() then
-                local right=frame:GetRight()*frame:GetEffectiveScale()
-                extra=math.max(extra,(right-mapRight)/scale)
-            end
-        end
-        include(active)
-        include(storyTab)
-        include(zoneTab)
-        include(tab)
-    end
-    local width=baseExtraWidth
-    if extra>0 then
-        local nativeWidth=width
-        if not nativeWidth then
-            local widthFunc=map:GetAttribute('UIPanelLayout-extraWidthFunc')
-            if widthFunc then nativeWidth=widthFunc(map) end
-        end
-        width=(nativeWidth or 0)+math.ceil(extra)
-    end
-    appliedExtraWidth=width
-    if current~=width then
-        SetUIPanelAttribute(map,'extraWidth',width)
-        UpdateUIPanelPositions(map)
-        movedPanels=false
-    end
-    if active and extra>0 and map:GetRight() then
-        placeManagedPanels(active,(map:GetRight()+extra)*map:GetEffectiveScale())
-    else
-        placeManagedPanels()
     end
 end
 
@@ -255,6 +220,18 @@ function ns.SetupDockHooks()
                 if SpokenPlaces==places and ns.GetStorySurfaces() then ns.QueueDock() end
             end)
         end
+        if type(places.ShowMapStory)=='function' then
+            hooksecurefunc(places,'ShowMapStory',function(_,mapID,entry)
+                ns.SetFullscreenExternalStory(mapID,entry)
+                ns.QueueDock()
+            end)
+        end
+        if type(places.ClearMapStory)=='function' then
+            hooksecurefunc(places,'ClearMapStory',function(_,mapID)
+                ns.ClearFullscreenExternalStory(mapID)
+                ns.QueueDock()
+            end)
+        end
     end
 end
 
@@ -295,6 +272,15 @@ end
 
 function ns.SyncDock()
     if syncing or not ns.DungeonButton then return end
+    if InCombatLockdown and InCombatLockdown() then
+        if not WorldMapFrame:IsShown() then
+            if ns.DungeonFrame then ns.DungeonFrame:Hide() end
+            if ns.ZoneFrame then ns.ZoneFrame:Hide() end
+            ns.DungeonButton:Hide()
+            if ns.ZoneButton then ns.ZoneButton:Hide() end
+        end
+        return
+    end
     syncing=true
     ns.SetupDockHooks()
     local frame=ns.ZoneQuestsOpen and ns.ZoneFrame or ns.DungeonFrame
@@ -309,17 +295,18 @@ function ns.SyncDock()
         if ns.ZoneFrame then ns.ZoneFrame:Hide() end
         tab:Hide()
         zoneTab:Hide()
-        updatePanelWidth()
         syncing=false
         return
     end
     local scale=WorldMapFrame:GetEffectiveScale()/UIParent:GetEffectiveScale()
     local maximized=WorldMapFrame.IsMaximized and WorldMapFrame:IsMaximized()
+    for _,panel in ipairs({ns.DungeonFrame or false,ns.ZoneFrame or false,story or false}) do
+        if panel then ns.LayoutDockPanel(panel,maximized) end
+    end
     local column
     if maximized then
-        local storyWidth=story and SpokenPlaces and SpokenPlaces.Get and SpokenPlaces:Get('panelWidth')
-        local preferred=type(storyWidth)=='number' and storyWidth*scale or 340
-        local panelWidth=math.min(preferred,UIParent:GetWidth()*.4)
+        fillMaximizedMap(WorldMapFrame,story)
+        local panelWidth=fullscreenPanelWidth(WorldMapFrame,story)
         column=layoutFullscreenColumn(WorldMapFrame,panelWidth,story~=nil)
         layoutFullscreenCanvas(WorldMapFrame,column)
     else
@@ -331,7 +318,7 @@ function ns.SyncDock()
             fullscreenStory=not SpokenPlaces:Get('mapPanelCollapsed')
         end
         if fullscreenStory and not addonPanelOpen and not story:IsShown() then
-            refreshFullscreenStory()
+            ns.RefreshFullscreenStory(story,SpokenPlaces)
         end
         story:ClearAllPoints()
         local titleOffset=fullscreenTabBand*WorldMapFrame:GetEffectiveScale()/story:GetEffectiveScale()
@@ -433,7 +420,6 @@ function ns.SyncDock()
     end
     if tab.SetChecked then tab:SetChecked(ns.DungeonsOpen==true) end
     zoneTab:SetChecked(ns.ZoneQuestsOpen==true)
-    updatePanelWidth(active,storyTab,zoneTab,tab)
     syncing=false
     if frame and frame:IsShown() and math.abs(frame:GetWidth()-previousWidth)>.5 then
         if ns.ZoneQuestsOpen then ns.UpdateZoneFrame() else ns.UpdateDungeonFrame() end
@@ -455,7 +441,7 @@ end
 
 function ns.InstallDungeonButton()
     ns.DungeonButton=createSideTab('QuestsStartsDungeonsButton',ns.L.dungeons,
-        'Interface\\Icons\\Achievement_Dungeon_ClassicDungeonmaster',function()
+        'Interface\\LFGFrame\\UI-LFG-PORTRAIT',function()
         if not ns.DungeonsOpen then ns.OpenDungeons() end
     end)
     ns.ZoneButton=createSideTab('QuestsStartsZoneButton',ns.L.zoneQuests,
@@ -479,8 +465,8 @@ function ns.InstallDungeonButton()
     WorldMapFrame:HookScript('OnSizeChanged',ns.QueueDock)
     WorldMapFrame:HookScript('OnUpdate',ns.SyncDockAlpha)
     if WorldMapFrame.UpdateMaximizedSize then
-        hooksecurefunc(WorldMapFrame,'UpdateMaximizedSize',fillMaximizedMap)
-        if WorldMapFrame:IsShown() and WorldMapFrame:IsMaximized() then fillMaximizedMap(WorldMapFrame) end
+        hooksecurefunc(WorldMapFrame,'UpdateMaximizedSize',function(map)fillMaximizedMap(map,ns.GetStorySurfaces())end)
+        if WorldMapFrame:IsShown() and WorldMapFrame:IsMaximized() then fillMaximizedMap(WorldMapFrame,ns.GetStorySurfaces()) end
     end
     if WorldMapFrame.Minimize then
         hooksecurefunc(WorldMapFrame,'Minimize',function()

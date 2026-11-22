@@ -166,7 +166,10 @@ function ns.DrawDungeonEntrances(map,mapID)
     local groups={}
     for id,dungeon in pairs(ns.Data.dungeons or {}) do
         for _,location in ipairs(dungeon.entrances or {}) do
-            local x,y=ns.ProjectEntrance(location,mapID,C_Map.GetMapRectOnMap)
+            -- Like quest pickups, entrances belong to their recorded zone.
+            -- Do not project them onto parent continent or world maps.
+            local x,y
+            if location.mapID==mapID then x,y=location.x,location.y end
             if x and y then
                 local key=string.format('%.6f:%.6f',x,y)
                 local group=groups[key]
